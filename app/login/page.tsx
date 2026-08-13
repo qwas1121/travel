@@ -10,10 +10,13 @@ export default async function LoginPage({
   return (
     <main className="flex min-h-screen flex-1 flex-col items-center justify-center gap-6 px-4">
       <div className="flex flex-col items-center gap-2 text-center">
-        <h1 className="font-serif text-3xl font-medium text-neutral-800">
+        <p className="text-[11px] uppercase tracking-[0.3em] text-rose-400">
+          Honeymoon
+        </p>
+        <h1 className="font-serif text-3xl font-normal text-neutral-900">
           신혼여행 포토북
         </h1>
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-neutral-400">
           비밀번호를 입력하면 사진을 볼 수 있어요
         </p>
       </div>

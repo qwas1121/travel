@@ -50,7 +50,7 @@ export default async function ByDatePage() {
         <div className="flex flex-col gap-12">
           {sortedKeys.map((key) => (
             <section key={key} className="flex flex-col gap-3">
-              <h2 className="font-serif text-xl text-neutral-700">
+              <h2 className="border-b border-neutral-200 pb-2 font-serif text-xl font-normal text-neutral-900">
                 {formatDateKeyKorean(key)}
               </h2>
               <PhotoGrid photos={groups.get(key)!} />
@@ -59,7 +59,7 @@ export default async function ByDatePage() {
 
           {undated.length > 0 && (
             <section className="flex flex-col gap-3">
-              <h2 className="font-serif text-xl text-neutral-700">
+              <h2 className="border-b border-neutral-200 pb-2 font-serif text-xl font-normal text-neutral-900">
                 날짜 미상
               </h2>
               <PhotoGrid photos={undated} />

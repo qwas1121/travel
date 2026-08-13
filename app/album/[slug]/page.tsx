@@ -50,15 +50,15 @@ export default async function AlbumPage({
       <div className="flex flex-col gap-3">
         <Link
           href="/"
-          className="inline-flex w-fit items-center gap-1 rounded-full border border-white/60 bg-white/50 px-4 py-1.5 text-sm text-neutral-500 shadow-sm backdrop-blur-md transition hover:text-rose-500"
+          className="w-fit text-sm text-neutral-400 transition hover:text-neutral-700"
         >
           ← 전체 앨범
         </Link>
-        <h1 className="font-serif text-3xl text-neutral-800">
+        <h1 className="font-serif text-3xl font-normal text-neutral-900">
           {album.title}
         </h1>
         {album.description && (
-          <p className="text-neutral-500">{album.description}</p>
+          <p className="text-neutral-400">{album.description}</p>
         )}
       </div>
 

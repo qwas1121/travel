@@ -75,7 +75,7 @@ export default function Lightbox({
         <img
           src={`/api/image/${photo.driveFileId}`}
           alt={photo.caption ?? photo.name}
-          className="max-h-[80vh] max-w-[90vw] rounded-2xl object-contain shadow-2xl"
+          className="max-h-[80vh] max-w-[90vw] rounded-lg object-contain shadow-lg"
         />
         {photo.caption && (
           <p className="text-sm text-white/80">{photo.caption}</p>

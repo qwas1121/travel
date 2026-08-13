@@ -15,7 +15,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
             key={photo.driveFileId}
             type="button"
             onClick={() => setOpenIndex(index)}
-            className="group aspect-square overflow-hidden rounded-2xl border border-white/60 bg-white/40 shadow-sm backdrop-blur-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-md hover:shadow-rose-100"
+            className="group aspect-square overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100 transition-shadow hover:shadow-md"
           >
             {photo.thumbnailLink ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -26,7 +26,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                 className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-xs text-rose-200">
+              <div className="flex h-full w-full items-center justify-center text-xs text-neutral-300">
                 사진
               </div>
             )}
