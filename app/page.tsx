@@ -1,69 +1,56 @@
-import Image from "next/image";
+import AlbumCard from "@/components/AlbumCard";
+import SetupNotice from "@/components/SetupNotice";
+import { getAlbumCoverThumbnail, listAlbums } from "@/lib/drive";
+import type { Album } from "@/lib/types";
 
-export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  let albums: Album[];
+  try {
+    albums = await listAlbums();
+  } catch (error) {
+    console.error("앨범 목록을 불러오지 못했습니다:", error);
+    return (
+      <main className="flex flex-1 flex-col items-center justify-center px-4 py-16">
+        <SetupNotice message="Google Drive 연동이 아직 설정되지 않았습니다." />
       </main>
-    </div>
+    );
+  }
+
+  const covers = await Promise.all(
+    albums.map((album) => getAlbumCoverThumbnail(album).catch(() => null))
+  );
+
+  return (
+    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-4 py-12">
+      <header className="flex flex-col gap-2 text-center">
+        <h1 className="text-3xl font-semibold text-neutral-800">
+          신혼여행 포토북
+        </h1>
+        <p className="text-neutral-500">우리가 함께 걸었던 순간들</p>
+      </header>
+
+      {albums.length === 0 ? (
+        <p className="text-center text-neutral-400">
+          아직 등록된 앨범이 없어요. Google Drive 폴더에 사진을 올려보세요.
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {albums.map((album, i) => (
+            <AlbumCard key={album.slug} album={album} coverThumbnail={covers[i]} />
+          ))}
+        </div>
+      )}
+
+      <form action="/api/logout" method="POST" className="mt-4 text-center">
+        <button
+          type="submit"
+          className="text-sm text-neutral-400 hover:text-neutral-600"
+        >
+          로그아웃
+        </button>
+      </form>
+    </main>
   );
 }

@@ -1,7 +1,30 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx --yes create-next-app@latest . --typescript --tailwind --eslint --app --no-src-dir --import-alias \"@/*\" --use-npm --no-turbopack --yes)"
+      "Bash(npx --yes create-next-app@latest . --typescript --tailwind --eslint --app --no-src-dir --import-alias \"@/*\" --use-npm --no-turbopack --yes)",
+      "Bash(echo \"EXIT_CODE=$?\")",
+      "Bash(npm run *)",
+      "Bash(echo \"started with pid $!\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000 --max-time 3)",
+      "Bash(curl -s -D - -o /dev/null http://localhost:3000/ --max-time 5)",
+      "Bash(curl -s http://localhost:3000/login --max-time 5)",
+      "Bash(curl -s http://localhost:3000/ --max-time 5)",
+      "Bash(curl -s http://127.0.0.1:3000/login --max-time 5)",
+      "Bash(curl -s -D - -o /dev/null http://127.0.0.1:3000/ --max-time 5)",
+      "Bash(curl -s -D - -o /dev/null -X POST http://127.0.0.1:3000/api/login -d password=wrongpass -d next=%2F --max-time 5)",
+      "Bash(tasklist //FI \"PID eq 23788\")",
+      "Bash(tasklist //FI \"IMAGENAME eq node.exe\")",
+      "Bash(taskkill //F //PID 23788)",
+      "Bash(curl -s -c /tmp/cookies.txt -D - -o /dev/null -X POST http://127.0.0.1:3000/api/login -d password=test1234 -d next=%2F --max-time 5)",
+      "Bash(curl -s -b /tmp/cookies.txt http://127.0.0.1:3000/ --max-time 5)",
+      "Bash(curl -s -b /tmp/cookies.txt -o /dev/null -w \"%{http_code}\\\\n\" http://127.0.0.1:3000/album/anything --max-time 5)",
+      "Bash(curl -s -c /tmp/cookies2.txt -D - -o /dev/null -X POST http://127.0.0.1:3000/api/logout --max-time 5)",
+      "Bash(curl -s -b /tmp/cookies2.txt -D - -o /dev/null http://127.0.0.1:3000/ --max-time 5)",
+      "Bash(curl -s -b /tmp/cookies.txt http://127.0.0.1:3000/album/anything --max-time 5)",
+      "Bash(curl -s -b /tmp/cookies.txt -D - -o /dev/null -X POST http://127.0.0.1:3000/api/logout --max-time 5)",
+      "Bash(taskkill //F //PID 21484)",
+      "Bash(rm \"/c/Users/다인리더스/Downloads/honeymoon/.env.local\")",
+      "Bash(rm -f /tmp/nextdev.log /tmp/nextdev2.log /tmp/cookies.txt /tmp/cookies2.txt)"
     ]
   }
 }
