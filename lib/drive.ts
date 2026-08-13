@@ -1,6 +1,6 @@
 import { google } from "googleapis";
 import { Readable } from "node:stream";
-import type { Album, Photo } from "./types";
+import type { Album, Photo, PhotoWithAlbum } from "./types";
 import { getAlbumOverrides, getPhotoOverrides } from "./supabase";
 
 const FOLDER_MIME = "application/vnd.google-apps.folder";
@@ -117,14 +117,14 @@ export async function listPhotos(driveFolderId: string): Promise<Photo[]> {
   const drive = getDriveClient();
   const res = await drive.files.list({
     q: `'${driveFolderId}' in parents and mimeType contains 'image/' and trashed = false`,
-    fields: "files(id, name, thumbnailLink, createdTime)",
+    fields:
+      "files(id, name, thumbnailLink, createdTime, imageMediaMetadata(time))",
     orderBy: "name",
     pageSize: 1000,
   });
 
   const files = (res.data.files ?? []).filter(
-    (f): f is { id: string; name?: string | null; thumbnailLink?: string | null; createdTime?: string | null } =>
-      Boolean(f.id)
+    (f): f is typeof f & { id: string } => Boolean(f.id)
   );
   const overrides = await getPhotoOverrides(driveFolderId);
 
@@ -137,10 +137,52 @@ export async function listPhotos(driveFolderId: string): Promise<Photo[]> {
       caption: override?.caption ?? null,
       sortOrder: override?.sortOrder ?? index,
       createdTime: file.createdTime ?? null,
+      takenAt: file.imageMediaMetadata?.time ?? file.createdTime ?? null,
     };
   });
 
   return photos.sort((a, b) => a.sortOrder - b.sortOrder);
+}
+
+/** 모든 앨범의 사진을 한데 모읍니다 (날짜별 보기용). */
+export async function listAllPhotos(): Promise<PhotoWithAlbum[]> {
+  const albums = await listAlbums();
+  const perAlbum = await Promise.all(
+    albums.map(async (album) => {
+      const photos = await listPhotos(album.driveFolderId);
+      return photos.map((photo) => ({
+        ...photo,
+        albumSlug: album.slug,
+        albumTitle: album.title,
+      }));
+    })
+  );
+  return perAlbum.flat();
+}
+
+/** 사진의 촬영 날짜에서 "YYYY-MM-DD" 형태의 그룹핑 키를 뽑아냅니다. */
+export function photoDateKey(photo: Photo): string | null {
+  const value = photo.takenAt;
+  if (!value) return null;
+
+  const exifMatch = value.match(/^(\d{4}):(\d{2}):(\d{2})/);
+  if (exifMatch) return `${exifMatch[1]}-${exifMatch[2]}-${exifMatch[3]}`;
+
+  const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+
+  return null;
+}
+
+export function formatDateKeyKorean(dateKey: string): string {
+  const [y, m, d] = dateKey.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  return new Intl.DateTimeFormat("ko-KR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    weekday: "short",
+  }).format(date);
 }
 
 export async function getDriveFileStream(fileId: string) {

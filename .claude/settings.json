@@ -30,7 +30,10 @@
       "Bash(curl -s -b /tmp/cookies.txt http://127.0.0.1:3000/ --max-time 15)",
       "Bash(curl -s -b /tmp/cookies.txt \"http://127.0.0.1:3000/album/%EC%B2%AB%EB%82%A0\" -o /dev/null -w \"status=%{http_code}\\\\n\" --max-time 15)",
       "Bash(curl -s -b /tmp/cookies.txt \"http://127.0.0.1:3000/album/%EC%B2%AB%EB%82%A0\" -o /dev/null -w \"status=%{http_code}\\\\n\" --max-time 20)",
-      "Bash(curl -s -b /tmp/cookies.txt \"http://127.0.0.1:3000/album/%EB%A1%9C%EB%A7%88-%EC%B2%AB%EB%82%A0-1%EC%9D%BC%EC%B0%A8-260316%EC%9B%94\" -o /dev/null -w \"status=%{http_code}\\\\n\" --max-time 20)"
+      "Bash(curl -s -b /tmp/cookies.txt \"http://127.0.0.1:3000/album/%EB%A1%9C%EB%A7%88-%EC%B2%AB%EB%82%A0-1%EC%9D%BC%EC%B0%A8-260316%EC%9B%94\" -o /dev/null -w \"status=%{http_code}\\\\n\" --max-time 20)",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(curl -s -b /tmp/cookies.txt http://127.0.0.1:3000/by-date -o /dev/null -w \"status=%{http_code}\\\\n\" --max-time 20)",
+      "Bash(curl -s -b /tmp/cookies.txt http://127.0.0.1:3000/by-date --max-time 20)"
     ]
   }
 }

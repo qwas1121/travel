@@ -1,3 +1,4 @@
+import Link from "next/link";
 import AlbumCard from "@/components/AlbumCard";
 import SetupNotice from "@/components/SetupNotice";
 import { getAlbumCoverThumbnail, listAlbums } from "@/lib/drive";
@@ -29,6 +30,12 @@ export default async function HomePage() {
           신혼여행 포토북
         </h1>
         <p className="text-neutral-500">우리가 함께 걸었던 순간들</p>
+        <Link
+          href="/by-date"
+          className="mt-1 text-sm text-rose-400 hover:text-rose-500"
+        >
+          📅 날짜별로 보기
+        </Link>
       </header>
 
       {albums.length === 0 ? (
