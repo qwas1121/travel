@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import PhotoGrid from "@/components/PhotoGrid";
 import SetupNotice from "@/components/SetupNotice";
+import TopBar from "@/components/TopBar";
 import { getAlbumBySlug, listPhotos } from "@/lib/drive";
 import type { Album, Photo } from "@/lib/types";
 
@@ -46,29 +46,35 @@ export default async function AlbumPage({
   const { album, photos } = data;
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-12">
-      <div className="flex flex-col gap-3">
-        <Link
-          href="/"
-          className="w-fit text-sm text-neutral-400 transition hover:text-neutral-700"
-        >
-          ← 전체 앨범
-        </Link>
-        <h1 className="font-serif text-3xl font-normal text-neutral-900">
-          {album.title}
-        </h1>
+    <>
+      <TopBar mode="detail" label={album.title} href="/" />
+
+      <div className="flex flex-1 flex-col gap-5 px-5 pb-10 pt-5">
         {album.description && (
-          <p className="text-neutral-400">{album.description}</p>
+          <div
+            className="rounded-[18px] border border-white/60 p-4 backdrop-blur-[18px] shadow-[0_8px_20px_oklch(0%_0_0/0.05),inset_0_1px_0_oklch(100%_0_0/0.8)]"
+            style={{
+              background:
+                "linear-gradient(160deg, oklch(100% 0 0 / 0.6), var(--color-chip) 130%)",
+            }}
+          >
+            <div className="mb-1 text-[10.5px] font-bold tracking-wide text-accent">
+              MEMO
+            </div>
+            <div className="text-[13.5px] leading-relaxed text-text-dark">
+              {album.description}
+            </div>
+          </div>
+        )}
+
+        {photos.length === 0 ? (
+          <p className="py-10 text-center text-sm text-text-muted">
+            이 앨범에는 아직 사진이 없어요.
+          </p>
+        ) : (
+          <PhotoGrid photos={photos} />
         )}
       </div>
-
-      {photos.length === 0 ? (
-        <p className="text-center text-neutral-400">
-          이 앨범에는 아직 사진이 없어요.
-        </p>
-      ) : (
-        <PhotoGrid photos={photos} />
-      )}
-    </main>
+    </>
   );
 }

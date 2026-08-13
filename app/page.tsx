@@ -1,15 +1,30 @@
-import AlbumCard from "@/components/AlbumCard";
+import CoverScreen from "@/components/CoverScreen";
+import HomeView, {
+  type AlbumWithMeta,
+  type DateGroup,
+} from "@/components/HomeView";
 import SetupNotice from "@/components/SetupNotice";
-import SiteHeader from "@/components/SiteHeader";
-import { getAlbumCoverThumbnail, listAlbums } from "@/lib/drive";
-import type { Album } from "@/lib/types";
+import {
+  formatDateKeyKorean,
+  getAlbumCoverThumbnail,
+  getTripDuration,
+  listAlbums,
+  listAllPhotos,
+  photoDateKey,
+} from "@/lib/drive";
+import type { Album, PhotoWithAlbum } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
+const DEFAULT_COUPLE_NAMES = "우리";
+const DEFAULT_TRIP_SUBTITLE = "함께 걸었던 순간들을 담았어요";
+const DEFAULT_TRIP_TITLE = "우리의 신혼여행";
+
 export default async function HomePage() {
   let albums: Album[];
+  let allPhotos: PhotoWithAlbum[];
   try {
-    albums = await listAlbums();
+    [albums, allPhotos] = await Promise.all([listAlbums(), listAllPhotos()]);
   } catch (error) {
     console.error("앨범 목록을 불러오지 못했습니다:", error);
     return (
@@ -23,30 +38,56 @@ export default async function HomePage() {
     albums.map((album) => getAlbumCoverThumbnail(album).catch(() => null))
   );
 
+  const photoCountByAlbum = new Map<string, number>();
+  for (const photo of allPhotos) {
+    photoCountByAlbum.set(
+      photo.albumSlug,
+      (photoCountByAlbum.get(photo.albumSlug) ?? 0) + 1
+    );
+  }
+
+  const albumsWithMeta: AlbumWithMeta[] = albums.map((album, i) => ({
+    ...album,
+    coverThumbnail: covers[i],
+    photoCount: photoCountByAlbum.get(album.slug) ?? 0,
+  }));
+
+  const groupsByDate = new Map<string, PhotoWithAlbum[]>();
+  for (const photo of allPhotos) {
+    const key = photoDateKey(photo);
+    if (!key) continue;
+    const list = groupsByDate.get(key) ?? [];
+    list.push(photo);
+    groupsByDate.set(key, list);
+  }
+
+  const dateGroups: DateGroup[] = [...groupsByDate.keys()].sort().map((dateKey) => {
+    const photos = groupsByDate.get(dateKey)!;
+    photos.sort((a, b) => (a.takenAt ?? "").localeCompare(b.takenAt ?? ""));
+    return { dateKey, label: formatDateKeyKorean(dateKey), photos };
+  });
+
+  const coupleNames =
+    process.env.NEXT_PUBLIC_COUPLE_NAMES?.trim() || DEFAULT_COUPLE_NAMES;
+  const tripSubtitle =
+    process.env.NEXT_PUBLIC_TRIP_SUBTITLE?.trim() || DEFAULT_TRIP_SUBTITLE;
+  const tripTitle =
+    process.env.NEXT_PUBLIC_TRIP_TITLE?.trim() || DEFAULT_TRIP_TITLE;
+
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-10 px-4 py-12">
-      <SiteHeader />
-
-      {albums.length === 0 ? (
-        <p className="text-center text-neutral-400">
-          아직 등록된 앨범이 없어요. Google Drive 폴더에 사진을 올려보세요.
-        </p>
-      ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {albums.map((album, i) => (
-            <AlbumCard key={album.slug} album={album} coverThumbnail={covers[i]} />
-          ))}
-        </div>
-      )}
-
-      <form action="/api/logout" method="POST" className="mt-4 text-center">
-        <button
-          type="submit"
-          className="text-sm text-neutral-400 transition hover:text-rose-400"
-        >
-          로그아웃
-        </button>
-      </form>
-    </main>
+    <>
+      <CoverScreen coupleNames={coupleNames} subtitle={tripSubtitle} />
+      <HomeView
+        coupleNames={coupleNames}
+        tripTitle={tripTitle}
+        albums={albumsWithMeta}
+        dateGroups={dateGroups}
+        stats={{
+          albumCount: albums.length,
+          photoCount: allPhotos.length,
+          duration: getTripDuration(allPhotos),
+        }}
+      />
+    </>
   );
 }

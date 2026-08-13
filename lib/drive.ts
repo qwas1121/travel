@@ -185,6 +185,24 @@ export function formatDateKeyKorean(dateKey: string): string {
   }).format(date);
 }
 
+/** 사진들의 촬영일 범위로부터 "n박 n+1일" 여행 기간을 계산합니다. 날짜 정보가 없으면 null. */
+export function getTripDuration(photos: Photo[]): string | null {
+  const keys = photos
+    .map(photoDateKey)
+    .filter((key): key is string => Boolean(key))
+    .sort();
+  if (keys.length === 0) return null;
+
+  const first = new Date(`${keys[0]}T00:00:00`);
+  const last = new Date(`${keys[keys.length - 1]}T00:00:00`);
+  const nights = Math.round(
+    (last.getTime() - first.getTime()) / (1000 * 60 * 60 * 24)
+  );
+
+  if (nights <= 0) return "당일치기";
+  return `${nights}박 ${nights + 1}일`;
+}
+
 export async function getDriveFileStream(fileId: string) {
   const drive = getDriveClient();
   const res = await drive.files.get(

@@ -1,7 +1,14 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-sans: var(--font-geist-sans);
+  --font-sans: "Pretendard", var(--font-geist-sans), sans-serif;
   --font-mono: var(--font-geist-mono);
-  --font-serif: var(--font-playfair);
+  --font-display: var(--font-space-grotesk);
+
+  --color-bg: #fdfcfb;
+  --color-text-dark: #332e2c;
+  --color-text-muted: #a39a97;
+  --color-accent: #ec6f9a;
+  --color-hairline: oklch(90% 0.01 30 / 0.6);
+  --color-chip: oklch(96% 0.015 20 / 0.7);
 }

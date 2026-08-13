@@ -90,6 +90,7 @@ Supabase 없이도 앱은 잘 동작합니다 (앨범 제목이 폴더명 그대
 2. 위에서 모은 값들을 채워 넣습니다.
    - `SITE_PASSWORD`: 사이트 입장용 비밀번호를 원하는 대로 정하세요.
    - `SESSION_SECRET`: 터미널에서 `openssl rand -base64 32` 실행 결과를 붙여넣으세요. (Windows PowerShell이면 아무 랜덤한 긴 문자열이어도 괜찮습니다.)
+   - `NEXT_PUBLIC_COUPLE_NAMES`, `NEXT_PUBLIC_TRIP_SUBTITLE`, `NEXT_PUBLIC_TRIP_TITLE`: 표지 화면에 보여줄 문구예요 (선택 사항, 비워두면 기본 문구가 나옵니다).
 3. 터미널에서 실행:
    ```bash
    npm install
@@ -124,6 +125,7 @@ Supabase 없이도 앱은 잘 동작합니다 (앨범 제목이 폴더명 그대
    - `SUPABASE_SERVICE_ROLE_KEY` (설정했다면)
    - `SITE_PASSWORD`
    - `SESSION_SECRET`
+   - `NEXT_PUBLIC_COUPLE_NAMES`, `NEXT_PUBLIC_TRIP_SUBTITLE`, `NEXT_PUBLIC_TRIP_TITLE` (설정했다면)
 4. **Deploy** 클릭 → 1~2분 후 배포 완료 → 발급된 주소(`https://저장소이름.vercel.app`)로 접속해서 확인
 
 이후에는 `git push`만 하면 Vercel이 자동으로 다시 배포해줍니다.

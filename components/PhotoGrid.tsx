@@ -9,28 +9,34 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3">
         {photos.map((photo, index) => (
-          <button
-            key={photo.driveFileId}
-            type="button"
-            onClick={() => setOpenIndex(index)}
-            className="group aspect-square overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100 transition-shadow hover:shadow-md"
-          >
-            {photo.thumbnailLink ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={photo.thumbnailLink}
-                alt={photo.caption ?? photo.name}
-                loading="lazy"
-                className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-xs text-neutral-300">
-                사진
-              </div>
+          <div key={photo.driveFileId} className="flex flex-col gap-1.5">
+            <button
+              type="button"
+              onClick={() => setOpenIndex(index)}
+              className="group aspect-square w-full overflow-hidden rounded-2xl bg-neutral-100 shadow-[0_2px_8px_oklch(0%_0_0/0.06)]"
+            >
+              {photo.thumbnailLink ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={photo.thumbnailLink}
+                  alt={photo.caption ?? photo.name}
+                  loading="lazy"
+                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-xs text-text-muted">
+                  사진
+                </div>
+              )}
+            </button>
+            {photo.caption && (
+              <p className="text-[11.5px] leading-snug text-text-muted">
+                {photo.caption}
+              </p>
             )}
-          </button>
+          </div>
         ))}
       </div>
 
