@@ -1,6 +1,6 @@
-import Link from "next/link";
 import PhotoGrid from "@/components/PhotoGrid";
 import SetupNotice from "@/components/SetupNotice";
+import SiteHeader from "@/components/SiteHeader";
 import { formatDateKeyKorean, listAllPhotos, photoDateKey } from "@/lib/drive";
 import type { PhotoWithAlbum } from "@/lib/types";
 
@@ -41,26 +41,16 @@ export default async function ByDatePage() {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-10 px-4 py-10">
-      <div className="flex flex-col gap-2">
-        <Link
-          href="/"
-          className="text-sm text-neutral-400 hover:text-neutral-600"
-        >
-          ← 앨범별로 보기
-        </Link>
-        <h1 className="text-2xl font-semibold text-neutral-800">
-          날짜별로 보기
-        </h1>
-      </div>
+    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-10 px-4 py-12">
+      <SiteHeader />
 
       {sortedKeys.length === 0 && undated.length === 0 ? (
         <p className="text-center text-neutral-400">아직 사진이 없어요.</p>
       ) : (
-        <div className="flex flex-col gap-10">
+        <div className="flex flex-col gap-12">
           {sortedKeys.map((key) => (
             <section key={key} className="flex flex-col gap-3">
-              <h2 className="text-lg font-medium text-neutral-700">
+              <h2 className="font-serif text-xl text-neutral-700">
                 {formatDateKeyKorean(key)}
               </h2>
               <PhotoGrid photos={groups.get(key)!} />
@@ -69,7 +59,7 @@ export default async function ByDatePage() {
 
           {undated.length > 0 && (
             <section className="flex flex-col gap-3">
-              <h2 className="text-lg font-medium text-neutral-700">
+              <h2 className="font-serif text-xl text-neutral-700">
                 날짜 미상
               </h2>
               <PhotoGrid photos={undated} />

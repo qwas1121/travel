@@ -46,15 +46,15 @@ export default async function AlbumPage({
   const { album, photos } = data;
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-10">
-      <div className="flex flex-col gap-2">
+    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-12">
+      <div className="flex flex-col gap-3">
         <Link
           href="/"
-          className="text-sm text-neutral-400 hover:text-neutral-600"
+          className="inline-flex w-fit items-center gap-1 rounded-full border border-white/60 bg-white/50 px-4 py-1.5 text-sm text-neutral-500 shadow-sm backdrop-blur-md transition hover:text-rose-500"
         >
           ← 전체 앨범
         </Link>
-        <h1 className="text-2xl font-semibold text-neutral-800">
+        <h1 className="font-serif text-3xl text-neutral-800">
           {album.title}
         </h1>
         {album.description && (

@@ -36,15 +36,18 @@ export default function Lightbox({
 
   if (!photo) return null;
 
+  const controlButton =
+    "flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-xl text-white/90 backdrop-blur-md transition hover:bg-white/20 hover:text-white";
+
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 p-4"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-neutral-950/85 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <button
         type="button"
         onClick={onClose}
-        className="absolute right-4 top-4 text-2xl text-white/80 hover:text-white"
+        className={`${controlButton} absolute right-4 top-4`}
         aria-label="닫기"
       >
         ✕
@@ -57,7 +60,7 @@ export default function Lightbox({
             event.stopPropagation();
             goPrev();
           }}
-          className="absolute left-2 text-3xl text-white/70 hover:text-white sm:left-6"
+          className={`${controlButton} absolute left-3 sm:left-6`}
           aria-label="이전 사진"
         >
           ‹
@@ -72,7 +75,7 @@ export default function Lightbox({
         <img
           src={`/api/image/${photo.driveFileId}`}
           alt={photo.caption ?? photo.name}
-          className="max-h-[80vh] max-w-[90vw] rounded-lg object-contain"
+          className="max-h-[80vh] max-w-[90vw] rounded-2xl object-contain shadow-2xl"
         />
         {photo.caption && (
           <p className="text-sm text-white/80">{photo.caption}</p>
@@ -86,7 +89,7 @@ export default function Lightbox({
             event.stopPropagation();
             goNext();
           }}
-          className="absolute right-2 text-3xl text-white/70 hover:text-white sm:right-6"
+          className={`${controlButton} absolute right-3 sm:right-6`}
           aria-label="다음 사진"
         >
           ›

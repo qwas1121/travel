@@ -1,6 +1,6 @@
-import Link from "next/link";
 import AlbumCard from "@/components/AlbumCard";
 import SetupNotice from "@/components/SetupNotice";
+import SiteHeader from "@/components/SiteHeader";
 import { getAlbumCoverThumbnail, listAlbums } from "@/lib/drive";
 import type { Album } from "@/lib/types";
 
@@ -24,19 +24,8 @@ export default async function HomePage() {
   );
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-4 py-12">
-      <header className="flex flex-col gap-2 text-center">
-        <h1 className="text-3xl font-semibold text-neutral-800">
-          신혼여행 포토북
-        </h1>
-        <p className="text-neutral-500">우리가 함께 걸었던 순간들</p>
-        <Link
-          href="/by-date"
-          className="mt-1 text-sm text-rose-400 hover:text-rose-500"
-        >
-          📅 날짜별로 보기
-        </Link>
-      </header>
+    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-10 px-4 py-12">
+      <SiteHeader />
 
       {albums.length === 0 ? (
         <p className="text-center text-neutral-400">
@@ -53,7 +42,7 @@ export default async function HomePage() {
       <form action="/api/logout" method="POST" className="mt-4 text-center">
         <button
           type="submit"
-          className="text-sm text-neutral-400 hover:text-neutral-600"
+          className="text-sm text-neutral-400 transition hover:text-rose-400"
         >
           로그아웃
         </button>
