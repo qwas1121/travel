@@ -24,7 +24,8 @@ export default async function AlbumPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = decodeURIComponent(rawSlug);
 
   let data: AlbumData;
   try {
