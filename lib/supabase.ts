@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { PhotoComment } from "./types";
 
 let cachedClient: SupabaseClient | null | undefined;
 
@@ -16,7 +17,7 @@ function getClient(): SupabaseClient | null {
   return cachedClient;
 }
 
-export type AlbumOverride = {
+export type FolderOverride = {
   slug: string | null;
   title: string | null;
   description: string | null;
@@ -24,13 +25,14 @@ export type AlbumOverride = {
   coverDriveFileId: string | null;
 };
 
-/** drive_folder_id -> 앨범 보강 정보. Supabase 미설정 시 빈 Map (Drive만으로 동작). */
-export async function getAlbumOverrides(): Promise<Map<string, AlbumOverride>> {
+async function getFolderOverrides(
+  table: "trips" | "albums"
+): Promise<Map<string, FolderOverride>> {
   const supabase = getClient();
   if (!supabase) return new Map();
 
   const { data, error } = await supabase
-    .from("albums")
+    .from(table)
     .select("drive_folder_id, slug, title, description, sort_order, cover_drive_file_id");
 
   if (error || !data) return new Map();
@@ -47,6 +49,16 @@ export async function getAlbumOverrides(): Promise<Map<string, AlbumOverride>> {
       },
     ])
   );
+}
+
+/** drive_folder_id -> 트립 보강 정보. Supabase 미설정 시 빈 Map (Drive만으로 동작). */
+export function getTripOverrides(): Promise<Map<string, FolderOverride>> {
+  return getFolderOverrides("trips");
+}
+
+/** drive_folder_id -> 앨범 보강 정보. Supabase 미설정 시 빈 Map (Drive만으로 동작). */
+export function getAlbumOverrides(): Promise<Map<string, FolderOverride>> {
+  return getFolderOverrides("albums");
 }
 
 export type PhotoOverride = {
@@ -83,4 +95,55 @@ export async function getPhotoOverrides(driveFolderId: string): Promise<Map<stri
       },
     ])
   );
+}
+
+function mapCommentRow(row: Record<string, unknown>): PhotoComment {
+  return {
+    id: row.id as string,
+    driveFileId: row.drive_file_id as string,
+    authorName: row.author_name as string,
+    body: row.body as string,
+    createdAt: row.created_at as string,
+  };
+}
+
+/** 특정 사진의 댓글 목록. Supabase 미설정이면 configured: false. */
+export async function getPhotoComments(
+  driveFileId: string
+): Promise<{ configured: boolean; comments: PhotoComment[] }> {
+  const supabase = getClient();
+  if (!supabase) return { configured: false, comments: [] };
+
+  const { data, error } = await supabase
+    .from("photo_comments")
+    .select("id, drive_file_id, author_name, body, created_at")
+    .eq("drive_file_id", driveFileId)
+    .order("created_at", { ascending: true });
+
+  if (error || !data) return { configured: true, comments: [] };
+
+  return { configured: true, comments: data.map(mapCommentRow) };
+}
+
+export async function addPhotoComment(
+  driveFileId: string,
+  authorName: string,
+  body: string
+): Promise<PhotoComment> {
+  const supabase = getClient();
+  if (!supabase) {
+    throw new Error("Supabase가 설정되지 않았습니다.");
+  }
+
+  const { data, error } = await supabase
+    .from("photo_comments")
+    .insert({ drive_file_id: driveFileId, author_name: authorName, body })
+    .select("id, drive_file_id, author_name, body, created_at")
+    .single();
+
+  if (error || !data) {
+    throw new Error(error?.message ?? "댓글을 저장하지 못했습니다.");
+  }
+
+  return mapCommentRow(data);
 }

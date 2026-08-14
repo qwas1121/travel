@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Photo } from "@/lib/types";
+import CommentPanel from "./CommentPanel";
 
 export default function Lightbox({
   photos,
@@ -15,6 +16,7 @@ export default function Lightbox({
   onIndexChange: (index: number) => void;
 }) {
   const photo = photos[index];
+  const [showComments, setShowComments] = useState(false);
 
   const goPrev = useCallback(() => {
     onIndexChange((index - 1 + photos.length) % photos.length);
@@ -23,6 +25,10 @@ export default function Lightbox({
   const goNext = useCallback(() => {
     onIndexChange((index + 1) % photos.length);
   }, [index, photos.length, onIndexChange]);
+
+  useEffect(() => {
+    setShowComments(false);
+  }, [index]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -41,7 +47,7 @@ export default function Lightbox({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-neutral-950/85 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <button
@@ -94,6 +100,25 @@ export default function Lightbox({
         >
           ›
         </button>
+      )}
+
+      <button
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation();
+          setShowComments((v) => !v);
+        }}
+        className={`${controlButton} absolute bottom-4 right-4 text-base`}
+        aria-label="댓글 보기"
+      >
+        💬
+      </button>
+
+      {showComments && (
+        <CommentPanel
+          driveFileId={photo.driveFileId}
+          onClose={() => setShowComments(false)}
+        />
       )}
     </div>
   );

@@ -14,7 +14,7 @@ export default function TopBar(props: TopBarProps) {
       {props.mode === "detail" ? (
         <Link
           href={props.href}
-          className="flex min-h-11 items-center gap-1.5 text-[15px] text-text-dark"
+          className="flex min-h-11 items-center gap-1.5 text-[15px] text-fg"
         >
           <span className="text-lg">‹</span>
           <span>{props.label}</span>

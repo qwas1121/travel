@@ -1,3 +1,12 @@
+export type Trip = {
+  slug: string;
+  driveFolderId: string;
+  title: string;
+  description: string | null;
+  sortOrder: number;
+  coverDriveFileId: string | null;
+};
+
 export type Album = {
   slug: string;
   driveFolderId: string;
@@ -21,4 +30,12 @@ export type Photo = {
 export type PhotoWithAlbum = Photo & {
   albumSlug: string;
   albumTitle: string;
+};
+
+export type PhotoComment = {
+  id: string;
+  driveFileId: string;
+  authorName: string;
+  body: string;
+  createdAt: string;
 };

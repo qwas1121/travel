@@ -15,7 +15,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
             <button
               type="button"
               onClick={() => setOpenIndex(index)}
-              className="group aspect-square w-full overflow-hidden rounded-2xl bg-neutral-100 shadow-[0_2px_8px_oklch(0%_0_0/0.06)]"
+              className="group aspect-square w-full overflow-hidden rounded-2xl bg-surface"
             >
               {photo.thumbnailLink ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -26,13 +26,13 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                   className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center text-xs text-text-muted">
+                <div className="flex h-full w-full items-center justify-center text-xs text-muted">
                   사진
                 </div>
               )}
             </button>
             {photo.caption && (
-              <p className="text-[11.5px] leading-snug text-text-muted">
+              <p className="text-[11.5px] leading-snug text-muted">
                 {photo.caption}
               </p>
             )}

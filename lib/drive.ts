@@ -1,7 +1,12 @@
 import { google } from "googleapis";
 import { Readable } from "node:stream";
-import type { Album, Photo, PhotoWithAlbum } from "./types";
-import { getAlbumOverrides, getPhotoOverrides } from "./supabase";
+import type { Album, Photo, PhotoWithAlbum, Trip } from "./types";
+import {
+  getAlbumOverrides,
+  getPhotoOverrides,
+  getTripOverrides,
+  type FolderOverride,
+} from "./supabase";
 
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 
@@ -40,13 +45,26 @@ function slugify(input: string): string {
     .trim()
     .replace(/[^\p{L}\p{N}]+/gu, "-")
     .replace(/^-+|-+$/g, "");
-  return slug || "album";
+  return slug || "item";
 }
 
-export async function listAlbums(): Promise<Album[]> {
+type FolderEntity = {
+  slug: string;
+  driveFolderId: string;
+  title: string;
+  description: string | null;
+  sortOrder: number;
+  coverDriveFileId: string | null;
+};
+
+/** 특정 폴더 바로 아래의 서브폴더들을 (트립/앨범 공용) 엔티티 목록으로 나열합니다. */
+async function listChildFolders(
+  parentFolderId: string,
+  overrides: Map<string, FolderOverride>
+): Promise<FolderEntity[]> {
   const drive = getDriveClient();
   const res = await drive.files.list({
-    q: `'${getRootFolderId()}' in parents and mimeType = '${FOLDER_MIME}' and trashed = false`,
+    q: `'${parentFolderId}' in parents and mimeType = '${FOLDER_MIME}' and trashed = false`,
     fields: "files(id, name)",
     orderBy: "name",
     pageSize: 200,
@@ -55,7 +73,6 @@ export async function listAlbums(): Promise<Album[]> {
   const folders = (res.data.files ?? []).filter(
     (f): f is { id: string; name: string } => Boolean(f.id && f.name)
   );
-  const overrides = await getAlbumOverrides();
 
   const draft = folders.map((folder, index) => {
     const override = overrides.get(folder.id);
@@ -71,7 +88,7 @@ export async function listAlbums(): Promise<Album[]> {
   });
 
   const usedSlugs = new Set<string>();
-  const albums: Album[] = draft
+  return draft
     .sort((a, b) => a.sortOrder - b.sortOrder)
     .map(({ baseSlug, ...rest }) => {
       let slug = baseSlug;
@@ -82,12 +99,62 @@ export async function listAlbums(): Promise<Album[]> {
       usedSlugs.add(slug);
       return { slug, ...rest };
     });
-
-  return albums;
 }
 
-export async function getAlbumBySlug(slug: string): Promise<Album | null> {
-  const albums = await listAlbums();
+async function getFirstImageThumbnail(
+  folderId: string
+): Promise<string | null> {
+  const drive = getDriveClient();
+  const res = await drive.files.list({
+    q: `'${folderId}' in parents and mimeType contains 'image/' and trashed = false`,
+    fields: "files(thumbnailLink)",
+    orderBy: "name",
+    pageSize: 1,
+  });
+  return res.data.files?.[0]?.thumbnailLink ?? null;
+}
+
+export async function listTrips(): Promise<Trip[]> {
+  const overrides = await getTripOverrides();
+  return listChildFolders(getRootFolderId(), overrides);
+}
+
+export async function getTripBySlug(slug: string): Promise<Trip | null> {
+  const trips = await listTrips();
+  return trips.find((t) => t.slug === slug) ?? null;
+}
+
+export async function getTripCoverThumbnail(
+  trip: Pick<Trip, "driveFolderId" | "coverDriveFileId">
+): Promise<string | null> {
+  const drive = getDriveClient();
+
+  if (trip.coverDriveFileId) {
+    const res = await drive.files.get({
+      fileId: trip.coverDriveFileId,
+      fields: "thumbnailLink",
+    });
+    if (res.data.thumbnailLink) return res.data.thumbnailLink;
+  }
+
+  const albums = await listAlbums(trip.driveFolderId);
+  for (const album of albums) {
+    const cover = await getAlbumCoverThumbnail(album);
+    if (cover) return cover;
+  }
+  return null;
+}
+
+export async function listAlbums(tripFolderId: string): Promise<Album[]> {
+  const overrides = await getAlbumOverrides();
+  return listChildFolders(tripFolderId, overrides);
+}
+
+export async function getAlbumBySlug(
+  tripFolderId: string,
+  slug: string
+): Promise<Album | null> {
+  const albums = await listAlbums(tripFolderId);
   return albums.find((a) => a.slug === slug) ?? null;
 }
 
@@ -104,13 +171,7 @@ export async function getAlbumCoverThumbnail(
     if (res.data.thumbnailLink) return res.data.thumbnailLink;
   }
 
-  const res = await drive.files.list({
-    q: `'${album.driveFolderId}' in parents and mimeType contains 'image/' and trashed = false`,
-    fields: "files(thumbnailLink)",
-    orderBy: "name",
-    pageSize: 1,
-  });
-  return res.data.files?.[0]?.thumbnailLink ?? null;
+  return getFirstImageThumbnail(album.driveFolderId);
 }
 
 export async function listPhotos(driveFolderId: string): Promise<Photo[]> {
@@ -144,9 +205,11 @@ export async function listPhotos(driveFolderId: string): Promise<Photo[]> {
   return photos.sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
-/** 모든 앨범의 사진을 한데 모읍니다 (날짜별 보기용). */
-export async function listAllPhotos(): Promise<PhotoWithAlbum[]> {
-  const albums = await listAlbums();
+/** 트립 안 모든 앨범의 사진을 한데 모읍니다 (날짜별 보기용). */
+export async function listAllPhotos(
+  tripFolderId: string
+): Promise<PhotoWithAlbum[]> {
+  const albums = await listAlbums(tripFolderId);
   const perAlbum = await Promise.all(
     albums.map(async (album) => {
       const photos = await listPhotos(album.driveFolderId);

@@ -28,12 +28,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="ko"
       className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col items-center bg-neutral-100 text-text-dark">
+      <body className="min-h-full flex flex-col items-center bg-black text-fg">
         <link
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css"
         />
-        <div className="relative flex min-h-screen w-full max-w-[480px] flex-1 flex-col overflow-x-hidden bg-bg shadow-[0_0_40px_oklch(0%_0_0/0.06)]">
+        <div className="relative flex min-h-screen w-full max-w-[480px] flex-1 flex-col overflow-x-hidden border-x border-hairline bg-bg">
           {children}
         </div>
       </body>

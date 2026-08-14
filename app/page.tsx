@@ -1,32 +1,19 @@
-import CoverScreen from "@/components/CoverScreen";
-import HomeView, {
-  type AlbumWithMeta,
-  type DateGroup,
-} from "@/components/HomeView";
 import SetupNotice from "@/components/SetupNotice";
-import {
-  formatDateKeyKorean,
-  getAlbumCoverThumbnail,
-  getTripDuration,
-  listAlbums,
-  listAllPhotos,
-  photoDateKey,
-} from "@/lib/drive";
-import type { Album, PhotoWithAlbum } from "@/lib/types";
+import TopBar from "@/components/TopBar";
+import TripCard from "@/components/TripCard";
+import { getTripCoverThumbnail, listTrips } from "@/lib/drive";
+import type { Trip } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-const DEFAULT_COUPLE_NAMES = "우리";
-const DEFAULT_TRIP_SUBTITLE = "함께 걸었던 순간들을 담았어요";
-const DEFAULT_TRIP_TITLE = "우리의 신혼여행";
+const DEFAULT_SITE_TITLE = "우리의 여행";
 
-export default async function HomePage() {
-  let albums: Album[];
-  let allPhotos: PhotoWithAlbum[];
+export default async function TripPickerPage() {
+  let trips: Trip[];
   try {
-    [albums, allPhotos] = await Promise.all([listAlbums(), listAllPhotos()]);
+    trips = await listTrips();
   } catch (error) {
-    console.error("앨범 목록을 불러오지 못했습니다:", error);
+    console.error("여행 목록을 불러오지 못했습니다:", error);
     return (
       <main className="flex flex-1 flex-col items-center justify-center px-4 py-16">
         <SetupNotice message="Google Drive 연동이 아직 설정되지 않았습니다." />
@@ -35,59 +22,38 @@ export default async function HomePage() {
   }
 
   const covers = await Promise.all(
-    albums.map((album) => getAlbumCoverThumbnail(album).catch(() => null))
+    trips.map((trip) => getTripCoverThumbnail(trip).catch(() => null))
   );
 
-  const photoCountByAlbum = new Map<string, number>();
-  for (const photo of allPhotos) {
-    photoCountByAlbum.set(
-      photo.albumSlug,
-      (photoCountByAlbum.get(photo.albumSlug) ?? 0) + 1
-    );
-  }
-
-  const albumsWithMeta: AlbumWithMeta[] = albums.map((album, i) => ({
-    ...album,
-    coverThumbnail: covers[i],
-    photoCount: photoCountByAlbum.get(album.slug) ?? 0,
-  }));
-
-  const groupsByDate = new Map<string, PhotoWithAlbum[]>();
-  for (const photo of allPhotos) {
-    const key = photoDateKey(photo);
-    if (!key) continue;
-    const list = groupsByDate.get(key) ?? [];
-    list.push(photo);
-    groupsByDate.set(key, list);
-  }
-
-  const dateGroups: DateGroup[] = [...groupsByDate.keys()].sort().map((dateKey) => {
-    const photos = groupsByDate.get(dateKey)!;
-    photos.sort((a, b) => (a.takenAt ?? "").localeCompare(b.takenAt ?? ""));
-    return { dateKey, label: formatDateKeyKorean(dateKey), photos };
-  });
-
-  const coupleNames =
-    process.env.NEXT_PUBLIC_COUPLE_NAMES?.trim() || DEFAULT_COUPLE_NAMES;
-  const tripSubtitle =
-    process.env.NEXT_PUBLIC_TRIP_SUBTITLE?.trim() || DEFAULT_TRIP_SUBTITLE;
-  const tripTitle =
-    process.env.NEXT_PUBLIC_TRIP_TITLE?.trim() || DEFAULT_TRIP_TITLE;
+  const siteTitle =
+    process.env.NEXT_PUBLIC_SITE_TITLE?.trim() || DEFAULT_SITE_TITLE;
 
   return (
     <>
-      <CoverScreen coupleNames={coupleNames} subtitle={tripSubtitle} />
-      <HomeView
-        coupleNames={coupleNames}
-        tripTitle={tripTitle}
-        albums={albumsWithMeta}
-        dateGroups={dateGroups}
-        stats={{
-          albumCount: albums.length,
-          photoCount: allPhotos.length,
-          duration: getTripDuration(allPhotos),
-        }}
-      />
+      <TopBar mode="list" wordmark={siteTitle} />
+
+      <div className="flex flex-1 flex-col gap-5 px-5 pb-10 pt-5">
+        {trips.length === 0 ? (
+          <p className="py-10 text-center text-sm text-muted">
+            아직 등록된 여행이 없어요. Google Drive에 폴더를 만들어보세요.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {trips.map((trip, index) => (
+              <TripCard key={trip.slug} trip={trip} coverThumbnail={covers[index]} />
+            ))}
+          </div>
+        )}
+
+        <form action="/api/logout" method="POST" className="pt-2 text-center">
+          <button
+            type="submit"
+            className="text-xs text-muted transition hover:text-accent"
+          >
+            로그아웃
+          </button>
+        </form>
+      </div>
     </>
   );
 }

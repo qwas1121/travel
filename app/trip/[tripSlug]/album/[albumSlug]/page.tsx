@@ -2,34 +2,41 @@ import { notFound } from "next/navigation";
 import PhotoGrid from "@/components/PhotoGrid";
 import SetupNotice from "@/components/SetupNotice";
 import TopBar from "@/components/TopBar";
-import { getAlbumBySlug, listPhotos } from "@/lib/drive";
-import type { Album, Photo } from "@/lib/types";
+import { getAlbumBySlug, getTripBySlug, listPhotos } from "@/lib/drive";
+import type { Album, Photo, Trip } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 type AlbumData =
   | { found: false }
-  | { found: true; album: Album; photos: Photo[] };
+  | { found: true; trip: Trip; album: Album; photos: Photo[] };
 
-async function loadAlbumData(slug: string): Promise<AlbumData> {
-  const album = await getAlbumBySlug(slug);
+async function loadAlbumData(
+  tripSlug: string,
+  albumSlug: string
+): Promise<AlbumData> {
+  const trip = await getTripBySlug(tripSlug);
+  if (!trip) return { found: false };
+
+  const album = await getAlbumBySlug(trip.driveFolderId, albumSlug);
   if (!album) return { found: false };
 
   const photos = await listPhotos(album.driveFolderId);
-  return { found: true, album, photos };
+  return { found: true, trip, album, photos };
 }
 
 export default async function AlbumPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ tripSlug: string; albumSlug: string }>;
 }) {
-  const { slug: rawSlug } = await params;
-  const slug = decodeURIComponent(rawSlug);
+  const { tripSlug: rawTripSlug, albumSlug: rawAlbumSlug } = await params;
+  const tripSlug = decodeURIComponent(rawTripSlug);
+  const albumSlug = decodeURIComponent(rawAlbumSlug);
 
   let data: AlbumData;
   try {
-    data = await loadAlbumData(slug);
+    data = await loadAlbumData(tripSlug, albumSlug);
   } catch (error) {
     console.error("앨범을 불러오지 못했습니다:", error);
     return (
@@ -43,32 +50,33 @@ export default async function AlbumPage({
     notFound();
   }
 
-  const { album, photos } = data;
+  const { trip, album, photos } = data;
 
   return (
     <>
-      <TopBar mode="detail" label={album.title} href="/" />
+      <TopBar
+        mode="detail"
+        label={album.title}
+        href={`/trip/${trip.slug}`}
+      />
 
       <div className="flex flex-1 flex-col gap-5 px-5 pb-10 pt-5">
         {album.description && (
           <div
-            className="rounded-[18px] border border-white/60 p-4 backdrop-blur-[18px] shadow-[0_8px_20px_oklch(0%_0_0/0.05),inset_0_1px_0_oklch(100%_0_0/0.8)]"
-            style={{
-              background:
-                "linear-gradient(160deg, oklch(100% 0 0 / 0.6), var(--color-chip) 130%)",
-            }}
+            className="rounded-[18px] border border-hairline p-4"
+            style={{ background: "var(--color-surface)" }}
           >
             <div className="mb-1 text-[10.5px] font-bold tracking-wide text-accent">
               MEMO
             </div>
-            <div className="text-[13.5px] leading-relaxed text-text-dark">
+            <div className="text-[13.5px] leading-relaxed text-fg">
               {album.description}
             </div>
           </div>
         )}
 
         {photos.length === 0 ? (
-          <p className="py-10 text-center text-sm text-text-muted">
+          <p className="py-10 text-center text-sm text-muted">
             이 앨범에는 아직 사진이 없어요.
           </p>
         ) : (

@@ -5,10 +5,12 @@
   --font-mono: var(--font-geist-mono);
   --font-display: var(--font-space-grotesk);
 
-  --color-bg: #fdfcfb;
-  --color-text-dark: #332e2c;
-  --color-text-muted: #a39a97;
+  --color-bg: #141210;
+  --color-surface: #1f1c1a;
+  --color-fg: #f5f1ec;
+  --color-muted: #948d87;
   --color-accent: #ec6f9a;
-  --color-hairline: oklch(90% 0.01 30 / 0.6);
-  --color-chip: oklch(96% 0.015 20 / 0.7);
+  --color-hairline: oklch(100% 0 0 / 0.08);
+  --color-chip: oklch(100% 0 0 / 0.07);
+  --color-chip-active: oklch(100% 0 0 / 0.16);
 }
