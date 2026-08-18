@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type { Photo } from "@/lib/types";
 import CommentPanel from "./CommentPanel";
 
@@ -18,14 +18,7 @@ export default function Lightbox({
   onIndexChange: (index: number) => void;
 }) {
   const photo = photos[index];
-  const [zoomed, setZoomed] = useState(false);
-  const [lastIndex, setLastIndex] = useState(index);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
-
-  if (index !== lastIndex) {
-    setLastIndex(index);
-    setZoomed(false);
-  }
 
   const goPrev = useCallback(() => {
     onIndexChange((index - 1 + photos.length) % photos.length);
@@ -58,7 +51,7 @@ export default function Lightbox({
   function handleTouchEnd(event: React.TouchEvent) {
     const start = touchStart.current;
     touchStart.current = null;
-    if (!start || zoomed) return;
+    if (!start) return;
 
     const touch = event.changedTouches[0];
     const dx = touch.clientX - start.x;
@@ -91,11 +84,11 @@ export default function Lightbox({
       </div>
 
       <div
-        className={`relative flex min-h-0 flex-1 items-center justify-center px-3 ${zoomed ? "overflow-auto" : "overflow-hidden"}`}
+        className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden px-3"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        {!zoomed && photos.length > 1 && (
+        {photos.length > 1 && (
           <button
             type="button"
             onClick={goPrev}
@@ -110,18 +103,10 @@ export default function Lightbox({
         <img
           src={`/api/image/${photo.driveFileId}`}
           alt={photo.caption ?? photo.name}
-          onClick={(event) => {
-            event.stopPropagation();
-            setZoomed((z) => !z);
-          }}
-          className={
-            zoomed
-              ? "max-w-none scale-[2] cursor-zoom-out rounded-lg object-contain transition-transform duration-200"
-              : "max-h-full max-w-full cursor-zoom-in rounded-lg object-contain transition-transform duration-200"
-          }
+          className="max-h-full max-w-full rounded-lg object-contain"
         />
 
-        {!zoomed && photos.length > 1 && (
+        {photos.length > 1 && (
           <button
             type="button"
             onClick={goNext}
