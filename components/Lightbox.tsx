@@ -17,6 +17,12 @@ export default function Lightbox({
 }) {
   const photo = photos[index];
   const [showComments, setShowComments] = useState(false);
+  const [lastIndex, setLastIndex] = useState(index);
+
+  if (index !== lastIndex) {
+    setLastIndex(index);
+    setShowComments(false);
+  }
 
   const goPrev = useCallback(() => {
     onIndexChange((index - 1 + photos.length) % photos.length);
@@ -25,10 +31,6 @@ export default function Lightbox({
   const goNext = useCallback(() => {
     onIndexChange((index + 1) % photos.length);
   }, [index, photos.length, onIndexChange]);
-
-  useEffect(() => {
-    setShowComments(false);
-  }, [index]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {

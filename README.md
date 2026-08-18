@@ -5,7 +5,7 @@ Google Drive에 올린 사진을 앨범별로 보여주는 비밀번호 보호 �
 - **사진 원본**: Google Drive (용량 걱정 없이 무제한에 가깝게 사용)
 - **앨범/캡션 정보**: Supabase (무료 플랜, 텍스트만 저장)
 - **웹사이트 배포**: Vercel (무료 Hobby 플랜)
-- **접근 제어**: 비밀번호 하나로 전체 사이트 보호
+- **접근 제어**: 두 사람 각자의 비밀번호로 로그인 (로그인한 비밀번호에 따라 댓글 작성자 이름이 자동으로 붙습니다)
 
 아래 순서대로 따라 하면 됩니다. 중간에 막히는 부분이 있으면 그 화면을 캡처해서 물어보세요.
 
@@ -93,7 +93,7 @@ Supabase 없이도 앱은 잘 동작합니다 (여행/앨범 제목이 폴더명
 
 1. 이 폴더에서 `.env.local.example` 파일을 복사해서 `.env.local` 파일을 만듭니다.
 2. 위에서 모은 값들을 채워 넣습니다.
-   - `SITE_PASSWORD`: 사이트 입장용 비밀번호를 원하는 대로 정하세요.
+   - `SITE_PASSWORD_ILSONG`, `SITE_PASSWORD_SEHEE`: 두 사람 각자의 입장 비밀번호를 원하는 대로 정하세요. 어떤 비밀번호로 로그인했는지에 따라 댓글에 이름이 자동으로 붙어요. 가족들에게는 둘 중 편한 걸 공유하시면 됩니다.
    - `SESSION_SECRET`: 터미널에서 `openssl rand -base64 32` 실행 결과를 붙여넣으세요. (Windows PowerShell이면 아무 랜덤한 긴 문자열이어도 괜찮습니다.)
    - `NEXT_PUBLIC_SITE_TITLE`: 로그인 화면과 여행 목록 화면 상단에 보여줄 사이트 이름이에요 (선택 사항, 비워두면 기본 문구가 나옵니다).
 3. 터미널에서 실행:
@@ -128,7 +128,7 @@ Supabase 없이도 앱은 잘 동작합니다 (여행/앨범 제목이 폴더명
    - `GOOGLE_DRIVE_ROOT_FOLDER_ID`
    - `NEXT_PUBLIC_SUPABASE_URL` (설정했다면)
    - `SUPABASE_SERVICE_ROLE_KEY` (설정했다면)
-   - `SITE_PASSWORD`
+   - `SITE_PASSWORD_ILSONG`, `SITE_PASSWORD_SEHEE`
    - `SESSION_SECRET`
    - `NEXT_PUBLIC_SITE_TITLE` (설정했다면)
 4. **Deploy** 클릭 → 1~2분 후 배포 완료 → 발급된 주소(`https://저장소이름.vercel.app`)로 접속해서 확인

@@ -3,8 +3,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import type { PhotoComment } from "@/lib/types";
 
-const AUTHOR_STORAGE_KEY = "honeymoon:comment-author";
-
 function formatRelativeTime(iso: string): string {
   const date = new Date(iso);
   const diffMin = Math.floor((Date.now() - date.getTime()) / 60000);
@@ -29,27 +27,22 @@ export default function CommentPanel({
 }) {
   const [comments, setComments] = useState<PhotoComment[] | null>(null);
   const [configured, setConfigured] = useState(true);
+  const [viewer, setViewer] = useState<string | null>(null);
   const [loadError, setLoadError] = useState(false);
 
-  const [authorName, setAuthorName] = useState("");
   const [body, setBody] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
-    setAuthorName(localStorage.getItem(AUTHOR_STORAGE_KEY) ?? "");
-  }, []);
-
-  useEffect(() => {
     let cancelled = false;
-    setComments(null);
-    setLoadError(false);
 
     fetch(`/api/comments?fileId=${encodeURIComponent(driveFileId)}`)
       .then((res) => res.json())
       .then((data) => {
         if (cancelled) return;
         setConfigured(data.configured !== false);
+        setViewer(typeof data.viewer === "string" ? data.viewer : null);
         setComments(Array.isArray(data.comments) ? data.comments : []);
       })
       .catch(() => {
@@ -63,7 +56,7 @@ export default function CommentPanel({
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!authorName.trim() || !body.trim()) return;
+    if (!body.trim()) return;
 
     setSubmitting(true);
     setSubmitError(null);
@@ -71,14 +64,13 @@ export default function CommentPanel({
       const res = await fetch("/api/comments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fileId: driveFileId, authorName, body }),
+        body: JSON.stringify({ fileId: driveFileId, body }),
       });
       const data = await res.json();
       if (!res.ok) {
         setSubmitError(data.error ?? "댓글을 저장하지 못했습니다.");
         return;
       }
-      localStorage.setItem(AUTHOR_STORAGE_KEY, authorName.trim());
       setComments((prev) => [...(prev ?? []), data.comment]);
       setBody("");
     } catch {
@@ -151,22 +143,15 @@ export default function CommentPanel({
           {submitError && <p className="text-xs text-accent">{submitError}</p>}
           <div className="flex gap-2">
             <input
-              value={authorName}
-              onChange={(event) => setAuthorName(event.target.value)}
-              placeholder="이름"
-              maxLength={40}
-              className="w-20 rounded-lg border border-hairline bg-black/20 px-2.5 py-2 text-[13px] text-fg outline-none focus:border-accent"
-            />
-            <input
               value={body}
               onChange={(event) => setBody(event.target.value)}
-              placeholder="댓글을 남겨보세요"
+              placeholder={viewer ? `${viewer}(으)로 댓글 남기기` : "댓글을 남겨보세요"}
               maxLength={500}
               className="flex-1 rounded-lg border border-hairline bg-black/20 px-2.5 py-2 text-[13px] text-fg outline-none focus:border-accent"
             />
             <button
               type="submit"
-              disabled={submitting || !authorName.trim() || !body.trim()}
+              disabled={submitting || !body.trim() || !viewer}
               className="rounded-lg bg-accent px-3.5 py-2 text-[13px] font-medium text-white transition disabled:opacity-40"
             >
               등록
