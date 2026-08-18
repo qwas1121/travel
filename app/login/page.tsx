@@ -1,3 +1,4 @@
+import Image from "next/image";
 import PasswordForm from "@/components/PasswordForm";
 
 const DEFAULT_SITE_TITLE = "우리의 여행";
@@ -13,7 +14,17 @@ export default async function LoginPage({
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-8 px-6 text-center">
-      <div className="flex flex-col items-center gap-2">
+      <div className="flex flex-col items-center gap-3">
+        <div className="overflow-hidden rounded-2xl border border-white/10 shadow-lg">
+          <Image
+            src="/cover-illustration.png"
+            alt={siteTitle}
+            width={600}
+            height={600}
+            priority
+            className="h-36 w-36 object-cover"
+          />
+        </div>
         <p className="text-[11px] uppercase tracking-[0.35em] text-muted">
           Welcome
         </p>

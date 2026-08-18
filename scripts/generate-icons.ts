@@ -6,7 +6,7 @@ import { ImageResponse } from "next/og";
 import { appIconElement } from "../lib/app-icon";
 
 async function generate(sizePx: number, outPath: string) {
-  const response = new ImageResponse(appIconElement(), {
+  const response = new ImageResponse(appIconElement(sizePx), {
     width: sizePx,
     height: sizePx,
   });
