@@ -20,10 +20,8 @@ function formatRelativeTime(iso: string): string {
 
 export default function CommentPanel({
   driveFileId,
-  onClose,
 }: {
   driveFileId: string;
-  onClose: () => void;
 }) {
   const [comments, setComments] = useState<PhotoComment[] | null>(null);
   const [configured, setConfigured] = useState(true);
@@ -81,22 +79,11 @@ export default function CommentPanel({
   }
 
   return (
-    <div
-      onClick={(event) => event.stopPropagation()}
-      className="absolute inset-x-0 bottom-0 z-10 flex max-h-[65vh] flex-col rounded-t-2xl border-t border-hairline bg-surface"
-    >
-      <div className="flex items-center justify-between border-b border-hairline px-4 py-3">
+    <div className="flex min-h-0 flex-1 flex-col border-t border-hairline bg-surface">
+      <div className="border-b border-hairline px-4 py-2.5">
         <span className="text-sm font-semibold text-fg">
           댓글{comments && comments.length > 0 ? ` ${comments.length}` : ""}
         </span>
-        <button
-          type="button"
-          onClick={onClose}
-          className="text-lg text-muted"
-          aria-label="댓글 닫기"
-        >
-          ✕
-        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-3">

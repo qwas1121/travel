@@ -125,6 +125,28 @@ export async function getPhotoComments(
   return { configured: true, comments: data.map(mapCommentRow) };
 }
 
+/** 앨범의 메모(description)를 추가하거나 수정합니다. 해당 앨범 행이 없으면 새로 만듭니다. */
+export async function upsertAlbumMemo(
+  driveFolderId: string,
+  description: string
+): Promise<void> {
+  const supabase = getClient();
+  if (!supabase) {
+    throw new Error("Supabase가 설정되지 않았습니다.");
+  }
+
+  const { error } = await supabase
+    .from("albums")
+    .upsert(
+      { drive_folder_id: driveFolderId, description },
+      { onConflict: "drive_folder_id" }
+    );
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 export async function addPhotoComment(
   driveFileId: string,
   authorName: string,

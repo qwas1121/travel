@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import MemoEditor from "@/components/MemoEditor";
 import PhotoGrid from "@/components/PhotoGrid";
 import SetupNotice from "@/components/SetupNotice";
 import TopBar from "@/components/TopBar";
@@ -61,19 +62,10 @@ export default async function AlbumPage({
       />
 
       <div className="flex flex-1 flex-col gap-5 px-5 pb-10 pt-5">
-        {album.description && (
-          <div
-            className="rounded-[18px] border border-hairline p-4"
-            style={{ background: "var(--color-surface)" }}
-          >
-            <div className="mb-1 text-[10.5px] font-bold tracking-wide text-accent">
-              MEMO
-            </div>
-            <div className="text-[13.5px] leading-relaxed text-fg">
-              {album.description}
-            </div>
-          </div>
-        )}
+        <MemoEditor
+          driveFolderId={album.driveFolderId}
+          initialDescription={album.description}
+        />
 
         {photos.length === 0 ? (
           <p className="py-10 text-center text-sm text-muted">
