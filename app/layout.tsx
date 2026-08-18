@@ -1,6 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
+import { ICON_BG } from "@/lib/app-icon";
 import "./globals.css";
+
+const DEFAULT_SITE_TITLE = "우리의 여행";
+const siteTitle =
+  process.env.NEXT_PUBLIC_SITE_TITLE?.trim() || DEFAULT_SITE_TITLE;
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,8 +23,19 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "신혼여행 포토북",
-  description: "우리의 신혼여행 사진 기록",
+  title: siteTitle,
+  description: "우리의 여행 사진과 기록을 담은 포토북",
+  appleWebApp: {
+    capable: true,
+    title: siteTitle,
+    statusBarStyle: "black-translucent",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: ICON_BG,
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

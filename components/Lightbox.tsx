@@ -42,7 +42,15 @@ export default function Lightbox({
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black">
-      <div className="flex items-center justify-end px-4 py-3">
+      <div className="flex items-center justify-between px-4 py-3">
+        <a
+          href={`/api/image/${photo.driveFileId}?download=1&name=${encodeURIComponent(photo.name)}`}
+          download={photo.name}
+          className={controlButton}
+          aria-label="다운로드"
+        >
+          ⬇
+        </a>
         <button
           type="button"
           onClick={onClose}
