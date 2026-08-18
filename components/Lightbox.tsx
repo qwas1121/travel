@@ -1,8 +1,10 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Photo } from "@/lib/types";
 import CommentPanel from "./CommentPanel";
+
+const SWIPE_THRESHOLD = 50;
 
 export default function Lightbox({
   photos,
@@ -16,6 +18,14 @@ export default function Lightbox({
   onIndexChange: (index: number) => void;
 }) {
   const photo = photos[index];
+  const [zoomed, setZoomed] = useState(false);
+  const [lastIndex, setLastIndex] = useState(index);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+
+  if (index !== lastIndex) {
+    setLastIndex(index);
+    setZoomed(false);
+  }
 
   const goPrev = useCallback(() => {
     onIndexChange((index - 1 + photos.length) % photos.length);
@@ -40,6 +50,25 @@ export default function Lightbox({
   const controlButton =
     "flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/10 text-lg text-white/90 backdrop-blur-md transition hover:bg-white/20 hover:text-white";
 
+  function handleTouchStart(event: React.TouchEvent) {
+    const touch = event.touches[0];
+    touchStart.current = { x: touch.clientX, y: touch.clientY };
+  }
+
+  function handleTouchEnd(event: React.TouchEvent) {
+    const start = touchStart.current;
+    touchStart.current = null;
+    if (!start || zoomed) return;
+
+    const touch = event.changedTouches[0];
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+
+    if (Math.abs(dx) < SWIPE_THRESHOLD || Math.abs(dx) < Math.abs(dy)) return;
+    if (dx > 0) goPrev();
+    else goNext();
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black">
       <div className="flex items-center justify-between px-4 py-3">
@@ -61,12 +90,16 @@ export default function Lightbox({
         </button>
       </div>
 
-      <div className="relative flex min-h-0 flex-[1.1] items-center justify-center px-3">
-        {photos.length > 1 && (
+      <div
+        className={`relative flex min-h-0 flex-1 items-center justify-center px-3 ${zoomed ? "overflow-auto" : "overflow-hidden"}`}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        {!zoomed && photos.length > 1 && (
           <button
             type="button"
             onClick={goPrev}
-            className={`${controlButton} absolute left-2 sm:left-4`}
+            className={`${controlButton} absolute left-2 z-10 sm:left-4`}
             aria-label="이전 사진"
           >
             ‹
@@ -77,14 +110,22 @@ export default function Lightbox({
         <img
           src={`/api/image/${photo.driveFileId}`}
           alt={photo.caption ?? photo.name}
-          className="max-h-full max-w-full rounded-lg object-contain"
+          onClick={(event) => {
+            event.stopPropagation();
+            setZoomed((z) => !z);
+          }}
+          className={
+            zoomed
+              ? "max-w-none scale-[2] cursor-zoom-out rounded-lg object-contain transition-transform duration-200"
+              : "max-h-full max-w-full cursor-zoom-in rounded-lg object-contain transition-transform duration-200"
+          }
         />
 
-        {photos.length > 1 && (
+        {!zoomed && photos.length > 1 && (
           <button
             type="button"
             onClick={goNext}
-            className={`${controlButton} absolute right-2 sm:right-4`}
+            className={`${controlButton} absolute right-2 z-10 sm:right-4`}
             aria-label="다음 사진"
           >
             ›

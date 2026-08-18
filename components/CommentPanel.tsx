@@ -79,14 +79,14 @@ export default function CommentPanel({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col border-t border-hairline bg-surface">
-      <div className="border-b border-hairline px-4 py-2.5">
+    <div className="flex h-[180px] shrink-0 flex-col border-t border-white/10 bg-surface/60 backdrop-blur-xl">
+      <div className="border-b border-white/10 px-4 py-2">
         <span className="text-sm font-semibold text-fg">
           댓글{comments && comments.length > 0 ? ` ${comments.length}` : ""}
         </span>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-3">
+      <div className="flex-1 overflow-y-auto px-4 py-2">
         {loadError ? (
           <p className="py-4 text-center text-sm text-muted">
             댓글을 불러오지 못했어요.
@@ -125,7 +125,7 @@ export default function CommentPanel({
       {configured && (
         <form
           onSubmit={handleSubmit}
-          className="flex flex-col gap-2 border-t border-hairline p-3"
+          className="flex flex-col gap-1.5 border-t border-white/10 p-2.5"
         >
           {submitError && <p className="text-xs text-accent">{submitError}</p>}
           <div className="flex gap-2">
@@ -134,7 +134,7 @@ export default function CommentPanel({
               onChange={(event) => setBody(event.target.value)}
               placeholder={viewer ? `${viewer}(으)로 댓글 남기기` : "댓글을 남겨보세요"}
               maxLength={500}
-              className="flex-1 rounded-lg border border-hairline bg-black/20 px-2.5 py-2 text-[13px] text-fg outline-none focus:border-accent"
+              className="flex-1 rounded-lg border border-white/10 bg-black/20 px-2.5 py-2 text-[13px] text-fg outline-none focus:border-accent"
             />
             <button
               type="submit"
