@@ -58,7 +58,16 @@
       "Bash(curl -s -b /tmp/cookies_il.txt \"http://127.0.0.1:3000/api/comments?fileId=test123\" --max-time 15)",
       "Bash(curl -s -b /tmp/cookies_se.txt \"http://127.0.0.1:3000/api/comments?fileId=test123\" --max-time 15)",
       "Bash(curl -s -b /tmp/cookies_il.txt http://127.0.0.1:3000/ --max-time 15 -o /dev/null -w \"트립 피커: %{http_code}\\\\n\")",
-      "Bash(curl -s -b /tmp/cookies_se.txt \"http://127.0.0.1:3000/trip/%EC%9C%A0%EB%9F%BD-%EC%8B%A0%ED%98%BC%EC%97%AC%ED%96%89-260316-260323\" --max-time 15 -o /dev/null -w \"트립 페이지: %{http_code}\\\\n\")"
+      "Bash(curl -s -b /tmp/cookies_se.txt \"http://127.0.0.1:3000/trip/%EC%9C%A0%EB%9F%BD-%EC%8B%A0%ED%98%BC%EC%97%AC%ED%96%89-260316-260323\" --max-time 15 -o /dev/null -w \"트립 페이지: %{http_code}\\\\n\")",
+      "Bash(curl -s -c /tmp/cookies_il2.txt -D - -o /dev/null -X POST http://127.0.0.1:3000/api/login -d password=0919 -d next=%2F --max-time 15)",
+      "Bash(curl -s -b /tmp/cookies_il2.txt \"http://127.0.0.1:3000/api/comments?fileId=test-photo-123\" --max-time 15)",
+      "Bash(curl -s -b /tmp/cookies_il2.txt -X POST http://127.0.0.1:3000/api/comments -H 'Content-Type: application/json' -d '{\"fileId\":\"test-photo-123\",\"body\":\"테스트 댓글이에요\"}' --max-time 15)",
+      "Bash(iconv -f utf-8 -t utf-8)",
+      "Bash(xxd /tmp/comment_payload.json)",
+      "Bash(curl -s -b /tmp/cookies_il2.txt -X POST http://127.0.0.1:3000/api/comments -H 'Content-Type: application/json' --data-binary @/tmp/comment_payload.json --max-time 15)",
+      "Bash(curl -s -X DELETE https://okvszueaxgliwogiutds.supabase.co/rest/v1/photo_comments?drive_file_id=eq.test-photo-123 -H 'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9rdnN6dWVheGdsaXdvZ2l1dGRzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NzAwMDY0NiwiZXhwIjoyMTAyNTc2NjQ2fQ.YsbiHsunvqP0Hu97_C45WS_xUMljUzSc15bqH_9JP60' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9rdnN6dWVheGdsaXdvZ2l1dGRzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NzAwMDY0NiwiZXhwIjoyMTAyNTc2NjQ2fQ.YsbiHsunvqP0Hu97_C45WS_xUMljUzSc15bqH_9JP60' -w '\\\\nstatus=%{http_code}\\\\n' --max-time 15)",
+      "Bash(rm -f /tmp/comment_payload.json)",
+      "Bash(curl -s -o /dev/null -w \"status=%{http_code}\\\\n\" \"https://okvszueaxgliwogiutds.supabase.co\" --max-time 15 -v)"
     ]
   }
 }
