@@ -209,7 +209,7 @@ export async function listPhotos(driveFolderId: string): Promise<Photo[]> {
       caption: override?.caption ?? null,
       sortOrder: override?.sortOrder ?? index,
       createdTime: file.createdTime ?? null,
-      takenAt: exif?.time ?? file.createdTime ?? null,
+      takenAt: exif?.time ?? null,
       latitude: exif?.location?.latitude ?? null,
       longitude: exif?.location?.longitude ?? null,
       cameraModel: exif?.cameraModel ?? null,
