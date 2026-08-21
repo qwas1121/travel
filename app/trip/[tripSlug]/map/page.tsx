@@ -20,28 +20,31 @@ async function loadMapData(tripSlug: string): Promise<MapData> {
   if (!trip) return { found: false };
 
   const albums = await listAlbums(trip.driveFolderId);
-  const pins: MapPin[] = [];
 
-  for (const album of albums) {
-    const photos = await listPhotos(album.driveFolderId);
-    const geotagged = photos.find(
-      (photo) => photo.latitude != null && photo.longitude != null
-    );
-    if (!geotagged || geotagged.latitude == null || geotagged.longitude == null) {
-      continue;
-    }
+  const pinsPerAlbum = await Promise.all(
+    albums.map(async (album): Promise<MapPin | null> => {
+      const photos = await listPhotos(album.driveFolderId);
+      const geotagged = photos.find(
+        (photo) => photo.latitude != null && photo.longitude != null
+      );
+      if (!geotagged || geotagged.latitude == null || geotagged.longitude == null) {
+        return null;
+      }
 
-    const coverThumbnail = await getAlbumCoverThumbnail(album).catch(
-      () => null
-    );
-    pins.push({
-      albumSlug: album.slug,
-      title: album.title,
-      coverThumbnail,
-      latitude: geotagged.latitude,
-      longitude: geotagged.longitude,
-    });
-  }
+      const coverThumbnail = await getAlbumCoverThumbnail(album).catch(
+        () => null
+      );
+      return {
+        albumSlug: album.slug,
+        title: album.title,
+        coverThumbnail,
+        latitude: geotagged.latitude,
+        longitude: geotagged.longitude,
+      };
+    })
+  );
+
+  const pins = pinsPerAlbum.filter((pin): pin is MapPin => pin !== null);
 
   return { found: true, trip, pins };
 }

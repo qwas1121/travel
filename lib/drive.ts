@@ -223,9 +223,8 @@ export async function listPhotos(driveFolderId: string): Promise<Photo[]> {
 
 /** 트립 안 모든 앨범의 사진을 한데 모읍니다 (날짜별 보기용). */
 export async function listAllPhotos(
-  tripFolderId: string
+  albums: Album[]
 ): Promise<PhotoWithAlbum[]> {
-  const albums = await listAlbums(tripFolderId);
   const perAlbum = await Promise.all(
     albums.map(async (album) => {
       const photos = await listPhotos(album.driveFolderId);

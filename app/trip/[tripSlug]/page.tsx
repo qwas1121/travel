@@ -24,17 +24,21 @@ type TripData =
       trip: Trip;
       albums: Album[];
       allPhotos: PhotoWithAlbum[];
+      covers: (string | null)[];
     };
 
 async function loadTripData(slug: string): Promise<TripData> {
   const trip = await getTripBySlug(slug);
   if (!trip) return { found: false };
 
-  const [albums, allPhotos] = await Promise.all([
-    listAlbums(trip.driveFolderId),
-    listAllPhotos(trip.driveFolderId),
+  const albums = await listAlbums(trip.driveFolderId);
+  const [allPhotos, covers] = await Promise.all([
+    listAllPhotos(albums),
+    Promise.all(
+      albums.map((album) => getAlbumCoverThumbnail(album).catch(() => null))
+    ),
   ]);
-  return { found: true, trip, albums, allPhotos };
+  return { found: true, trip, albums, allPhotos, covers };
 }
 
 export default async function TripPage({
@@ -61,11 +65,7 @@ export default async function TripPage({
     notFound();
   }
 
-  const { trip, albums, allPhotos } = data;
-
-  const covers = await Promise.all(
-    albums.map((album) => getAlbumCoverThumbnail(album).catch(() => null))
-  );
+  const { trip, albums, allPhotos, covers } = data;
 
   const photoCountByAlbum = new Map<string, number>();
   for (const photo of allPhotos) {
