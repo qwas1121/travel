@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
+import AppShell from "@/components/AppShell";
 import { ICON_BG } from "@/lib/app-icon";
 import "./globals.css";
 
@@ -50,7 +51,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css"
         />
         <div className="relative flex min-h-screen w-full max-w-[480px] flex-1 flex-col overflow-x-hidden border-x border-hairline bg-bg">
-          {children}
+          <AppShell>{children}</AppShell>
         </div>
       </body>
     </html>

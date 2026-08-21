@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import AlbumCard from "./AlbumCard";
 import PhotoGrid from "./PhotoGrid";
 import TopBar from "./TopBar";
@@ -76,12 +75,6 @@ export default function HomeView({
             <span className="rounded-full bg-chip px-3.5 py-1.5 text-xs text-accent">
               사진 {stats.photoCount}장
             </span>
-            <Link
-              href={`/trip/${tripSlug}/map`}
-              className="rounded-full bg-chip px-3.5 py-1.5 text-xs text-accent"
-            >
-              🗺️ 지도
-            </Link>
           </div>
         </section>
 

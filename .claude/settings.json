@@ -80,7 +80,10 @@
       "Bash(grep -o '\\\\\\\\\"city\\\\\\\\\"[^,}]*')",
       "Bash(curl -s -b /tmp/cookies_exif.txt http://127.0.0.1:3000/trip/%EC%9C%A0%EB%9F%BD-%EC%8B%A0%ED%98%BC%EC%97%AC%ED%96%89-260316-260323/map --max-time 20)",
       "Bash(grep -o '\\\\\\\\\"latitude\\\\\\\\\":[0-9.]*\\\\|\\\\\\\\\"title\\\\\\\\\":\\\\\\\\\"[^\"]*\\\\\\\\\"\\\\|위치 정보가 있는')",
-      "Bash(npm uninstall *)"
+      "Bash(npm uninstall *)",
+      "Bash(curl -s -c /tmp/cookies_nav.txt -X POST http://127.0.0.1:3000/api/login -d \"password=0919\" -d \"next=%2F\" --max-time 15 -o /dev/null -w \"login=%{http_code}\\\\n\")",
+      "Bash(curl -s -b /tmp/cookies_nav.txt http://127.0.0.1:3000/ --max-time 15)",
+      "Bash(curl -s -b /tmp/cookies_nav.txt http://127.0.0.1:3000/trip/__TRACKED_VAR__/map -o /dev/null -w 'status=%{http_code}\\\\n' --max-time 20)"
     ],
     "additionalDirectories": [
       "\\tmp"
