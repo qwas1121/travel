@@ -102,8 +102,8 @@ export default function TripMap({
   }, [pins, tripSlug, router]);
 
   return (
-    <div className="relative h-full w-full">
-      <div ref={containerRef} className="h-full w-full" />
+    <div className="absolute inset-0">
+      <div ref={containerRef} className="absolute inset-0" />
       {status === "init-error" && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-bg p-6 text-center text-sm text-muted">
           <p>지도를 초기화하지 못했어요.</p>

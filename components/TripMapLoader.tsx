@@ -6,7 +6,7 @@ import type { MapPin } from "./TripMap";
 const TripMap = dynamic(() => import("./TripMap"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-full items-center justify-center text-sm text-muted">
+    <div className="absolute inset-0 flex items-center justify-center text-sm text-muted">
       지도를 불러오는 중...
     </div>
   ),
