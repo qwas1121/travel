@@ -64,7 +64,13 @@ export default function TripMap({
       map.fitBounds(bounds, { padding: [40, 40] });
     }
 
+    const resizeObserver = new ResizeObserver(() => {
+      map.invalidateSize();
+    });
+    resizeObserver.observe(containerRef.current);
+
     return () => {
+      resizeObserver.disconnect();
       map.remove();
     };
   }, [pins, tripSlug, router]);
