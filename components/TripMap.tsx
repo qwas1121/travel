@@ -2,7 +2,7 @@
 
 import L from "leaflet";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export type MapPin = {
   albumSlug: string;
@@ -33,46 +33,90 @@ export default function TripMap({
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
+  const [status, setStatus] = useState<
+    "loading" | "ready" | "tile-error" | "init-error"
+  >("loading");
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const map = L.map(containerRef.current, {
-      center:
-        pins.length > 0 ? [pins[0].latitude, pins[0].longitude] : [20, 0],
-      zoom: pins.length > 0 ? 6 : 2,
-    });
+    let map: L.Map | null = null;
+    let resizeObserver: ResizeObserver | null = null;
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    }).addTo(map);
+    try {
+      map = L.map(containerRef.current, {
+        center:
+          pins.length > 0 ? [pins[0].latitude, pins[0].longitude] : [20, 0],
+        zoom: pins.length > 0 ? 6 : 2,
+      });
 
-    for (const pin of pins) {
-      L.marker([pin.latitude, pin.longitude], { icon: createPinIcon(pin) })
-        .addTo(map)
-        .on("click", () => {
-          router.push(`/trip/${tripSlug}/album/${pin.albumSlug}`);
-        });
+      const tileLayer = L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        }
+      ).addTo(map);
+
+      tileLayer.on("tileerror", (e) => {
+        console.error("지도 타일 로드 실패:", e);
+        setStatus("tile-error");
+      });
+      tileLayer.on("load", () => {
+        setStatus((prev) => (prev === "loading" ? "ready" : prev));
+      });
+
+      for (const pin of pins) {
+        L.marker([pin.latitude, pin.longitude], { icon: createPinIcon(pin) })
+          .addTo(map)
+          .on("click", () => {
+            router.push(`/trip/${tripSlug}/album/${pin.albumSlug}`);
+          });
+      }
+
+      if (pins.length > 1) {
+        const bounds = L.latLngBounds(
+          pins.map((pin) => [pin.latitude, pin.longitude] as [number, number])
+        );
+        map.fitBounds(bounds, { padding: [40, 40] });
+      }
+
+      resizeObserver = new ResizeObserver(() => {
+        map?.invalidateSize();
+      });
+      resizeObserver.observe(containerRef.current);
+    } catch (err) {
+      console.error("지도 초기화 실패:", err);
+      const message = err instanceof Error ? err.message : String(err);
+      queueMicrotask(() => {
+        setStatus("init-error");
+        setErrorDetail(message);
+      });
     }
-
-    if (pins.length > 1) {
-      const bounds = L.latLngBounds(
-        pins.map((pin) => [pin.latitude, pin.longitude] as [number, number])
-      );
-      map.fitBounds(bounds, { padding: [40, 40] });
-    }
-
-    const resizeObserver = new ResizeObserver(() => {
-      map.invalidateSize();
-    });
-    resizeObserver.observe(containerRef.current);
 
     return () => {
-      resizeObserver.disconnect();
-      map.remove();
+      resizeObserver?.disconnect();
+      map?.remove();
     };
   }, [pins, tripSlug, router]);
 
-  return <div ref={containerRef} className="h-full w-full" />;
+  return (
+    <div className="relative h-full w-full">
+      <div ref={containerRef} className="h-full w-full" />
+      {status === "init-error" && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-bg p-6 text-center text-sm text-muted">
+          <p>지도를 초기화하지 못했어요.</p>
+          {errorDetail && (
+            <p className="text-xs text-muted/70">{errorDetail}</p>
+          )}
+        </div>
+      )}
+      {status === "tile-error" && (
+        <div className="pointer-events-none absolute inset-x-0 top-0 bg-black/70 px-3 py-2 text-center text-xs text-white">
+          지도 타일을 불러오지 못했어요 (네트워크 확인 필요)
+        </div>
+      )}
+    </div>
+  );
 }
