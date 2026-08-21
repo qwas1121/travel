@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+:root {
+  color-scheme: dark;
+}
+
 @theme inline {
   --font-sans: "Pretendard", var(--font-geist-sans), sans-serif;
   --font-mono: var(--font-geist-mono);

@@ -38,6 +38,7 @@ export const viewport: Viewport = {
   themeColor: ICON_BG,
   width: "device-width",
   initialScale: 1,
+  colorScheme: "dark",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
