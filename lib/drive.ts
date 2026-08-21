@@ -1,4 +1,5 @@
 import { google } from "googleapis";
+import { unstable_cache } from "next/cache";
 import { Readable } from "node:stream";
 import type { Album, Photo, PhotoWithAlbum, Trip } from "./types";
 import {
@@ -9,6 +10,13 @@ import {
 } from "./supabase";
 
 const FOLDER_MIME = "application/vnd.google-apps.folder";
+
+/**
+ * Drive 폴더/파일 목록 조회는 느리고(수백 장 앨범 기준 수 초) 자주 바뀌지 않으므로
+ * 결과를 캐시합니다. 캡션/커버 등 Supabase에 저장된, 자주 바뀌는 값은 캐시하지 않고
+ * 매 요청마다 새로 읽어 즉시 반영되게 합니다.
+ */
+const DRIVE_CACHE_SECONDS = 300;
 
 function getDriveClient() {
   const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
@@ -63,22 +71,30 @@ type FolderEntity = {
   coverDriveFileId: string | null;
 };
 
+const rawListChildFolders = unstable_cache(
+  async (parentFolderId: string): Promise<{ id: string; name: string }[]> => {
+    const drive = getDriveClient();
+    const res = await drive.files.list({
+      q: `'${parentFolderId}' in parents and mimeType = '${FOLDER_MIME}' and trashed = false`,
+      fields: "files(id, name)",
+      orderBy: "name",
+      pageSize: 200,
+    });
+
+    return (res.data.files ?? [])
+      .filter((f): f is { id: string; name: string } => Boolean(f.id && f.name))
+      .map((f) => ({ id: f.id, name: f.name }));
+  },
+  ["drive-list-child-folders"],
+  { revalidate: DRIVE_CACHE_SECONDS }
+);
+
 /** 특정 폴더 바로 아래의 서브폴더들을 (트립/앨범 공용) 엔티티 목록으로 나열합니다. */
 async function listChildFolders(
   parentFolderId: string,
   overrides: Map<string, FolderOverride>
 ): Promise<FolderEntity[]> {
-  const drive = getDriveClient();
-  const res = await drive.files.list({
-    q: `'${parentFolderId}' in parents and mimeType = '${FOLDER_MIME}' and trashed = false`,
-    fields: "files(id, name)",
-    orderBy: "name",
-    pageSize: 200,
-  });
-
-  const folders = (res.data.files ?? []).filter(
-    (f): f is { id: string; name: string } => Boolean(f.id && f.name)
-  );
+  const folders = await rawListChildFolders(parentFolderId);
 
   const draft = folders.map((folder, index) => {
     const override = overrides.get(folder.id);
@@ -107,18 +123,30 @@ async function listChildFolders(
     });
 }
 
-async function getFirstImageThumbnail(
-  folderId: string
-): Promise<string | null> {
-  const drive = getDriveClient();
-  const res = await drive.files.list({
-    q: `'${folderId}' in parents and mimeType contains 'image/' and trashed = false`,
-    fields: "files(thumbnailLink)",
-    orderBy: "name",
-    pageSize: 1,
-  });
-  return res.data.files?.[0]?.thumbnailLink ?? null;
-}
+const getFirstImageThumbnail = unstable_cache(
+  async (folderId: string): Promise<string | null> => {
+    const drive = getDriveClient();
+    const res = await drive.files.list({
+      q: `'${folderId}' in parents and mimeType contains 'image/' and trashed = false`,
+      fields: "files(thumbnailLink)",
+      orderBy: "name",
+      pageSize: 1,
+    });
+    return res.data.files?.[0]?.thumbnailLink ?? null;
+  },
+  ["drive-first-image-thumbnail"],
+  { revalidate: DRIVE_CACHE_SECONDS }
+);
+
+const getFileThumbnailById = unstable_cache(
+  async (fileId: string): Promise<string | null> => {
+    const drive = getDriveClient();
+    const res = await drive.files.get({ fileId, fields: "thumbnailLink" });
+    return res.data.thumbnailLink ?? null;
+  },
+  ["drive-file-thumbnail-by-id"],
+  { revalidate: DRIVE_CACHE_SECONDS }
+);
 
 export async function listTrips(): Promise<Trip[]> {
   const overrides = await getTripOverrides();
@@ -133,14 +161,9 @@ export async function getTripBySlug(slug: string): Promise<Trip | null> {
 export async function getTripCoverThumbnail(
   trip: Pick<Trip, "driveFolderId" | "coverDriveFileId">
 ): Promise<string | null> {
-  const drive = getDriveClient();
-
   if (trip.coverDriveFileId) {
-    const res = await drive.files.get({
-      fileId: trip.coverDriveFileId,
-      fields: "thumbnailLink",
-    });
-    if (res.data.thumbnailLink) return res.data.thumbnailLink;
+    const thumb = await getFileThumbnailById(trip.coverDriveFileId);
+    if (thumb) return thumb;
   }
 
   const albums = await listAlbums(trip.driveFolderId);
@@ -171,32 +194,68 @@ export async function getAlbumBySlug(
 export async function getAlbumCoverThumbnail(
   album: Pick<Album, "driveFolderId" | "coverDriveFileId">
 ): Promise<string | null> {
-  const drive = getDriveClient();
-
   if (album.coverDriveFileId) {
-    const res = await drive.files.get({
-      fileId: album.coverDriveFileId,
-      fields: "thumbnailLink",
-    });
-    if (res.data.thumbnailLink) return res.data.thumbnailLink;
+    const thumb = await getFileThumbnailById(album.coverDriveFileId);
+    if (thumb) return thumb;
   }
 
   return getFirstImageThumbnail(album.driveFolderId);
 }
 
-export async function listPhotos(driveFolderId: string): Promise<Photo[]> {
-  const drive = getDriveClient();
-  const res = await drive.files.list({
-    q: `'${driveFolderId}' in parents and mimeType contains 'image/' and trashed = false`,
-    fields:
-      "files(id, name, thumbnailLink, createdTime, imageMediaMetadata(time, location, cameraModel, aperture, isoSpeed))",
-    orderBy: "name",
-    pageSize: 1000,
-  });
+type RawPhotoFile = {
+  id: string;
+  name: string | null;
+  thumbnailLink: string | null;
+  createdTime: string | null;
+  imageMediaMetadata?: {
+    time?: string | null;
+    location?: { latitude?: number | null; longitude?: number | null } | null;
+    cameraModel?: string | null;
+    aperture?: number | null;
+    isoSpeed?: number | null;
+  } | null;
+};
 
-  const files = (res.data.files ?? []).filter(
-    (f): f is typeof f & { id: string } => Boolean(f.id)
-  );
+const rawListPhotoFiles = unstable_cache(
+  async (driveFolderId: string): Promise<RawPhotoFile[]> => {
+    const drive = getDriveClient();
+    const res = await drive.files.list({
+      q: `'${driveFolderId}' in parents and mimeType contains 'image/' and trashed = false`,
+      fields:
+        "files(id, name, thumbnailLink, createdTime, imageMediaMetadata(time, location, cameraModel, aperture, isoSpeed))",
+      orderBy: "name",
+      pageSize: 1000,
+    });
+
+    return (res.data.files ?? [])
+      .filter((f): f is typeof f & { id: string } => Boolean(f.id))
+      .map((f) => ({
+        id: f.id,
+        name: f.name ?? null,
+        thumbnailLink: f.thumbnailLink ?? null,
+        createdTime: f.createdTime ?? null,
+        imageMediaMetadata: f.imageMediaMetadata
+          ? {
+              time: f.imageMediaMetadata.time ?? null,
+              location: f.imageMediaMetadata.location
+                ? {
+                    latitude: f.imageMediaMetadata.location.latitude ?? null,
+                    longitude: f.imageMediaMetadata.location.longitude ?? null,
+                  }
+                : null,
+              cameraModel: f.imageMediaMetadata.cameraModel ?? null,
+              aperture: f.imageMediaMetadata.aperture ?? null,
+              isoSpeed: f.imageMediaMetadata.isoSpeed ?? null,
+            }
+          : null,
+      }));
+  },
+  ["drive-list-photo-files"],
+  { revalidate: DRIVE_CACHE_SECONDS }
+);
+
+export async function listPhotos(driveFolderId: string): Promise<Photo[]> {
+  const files = await rawListPhotoFiles(driveFolderId);
   const overrides = await getPhotoOverrides(driveFolderId);
 
   const photos: Photo[] = files.map((file, index) => {
