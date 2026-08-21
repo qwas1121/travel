@@ -79,7 +79,8 @@
       "Bash(curl -s -b /tmp/cookies_exif.txt http://127.0.0.1:3000/trip/%EC%9C%A0%EB%9F%BD-%EC%8B%A0%ED%98%BC%EC%97%AC%ED%96%89-260316-260323 --max-time 15)",
       "Bash(grep -o '\\\\\\\\\"city\\\\\\\\\"[^,}]*')",
       "Bash(curl -s -b /tmp/cookies_exif.txt http://127.0.0.1:3000/trip/%EC%9C%A0%EB%9F%BD-%EC%8B%A0%ED%98%BC%EC%97%AC%ED%96%89-260316-260323/map --max-time 20)",
-      "Bash(grep -o '\\\\\\\\\"latitude\\\\\\\\\":[0-9.]*\\\\|\\\\\\\\\"title\\\\\\\\\":\\\\\\\\\"[^\"]*\\\\\\\\\"\\\\|위치 정보가 있는')"
+      "Bash(grep -o '\\\\\\\\\"latitude\\\\\\\\\":[0-9.]*\\\\|\\\\\\\\\"title\\\\\\\\\":\\\\\\\\\"[^\"]*\\\\\\\\\"\\\\|위치 정보가 있는')",
+      "Bash(npm uninstall *)"
     ],
     "additionalDirectories": [
       "\\tmp"

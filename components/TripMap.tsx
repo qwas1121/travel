@@ -3,8 +3,7 @@
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
+import { useEffect, useRef } from "react";
 
 export type MapPin = {
   albumSlug: string;
@@ -26,24 +25,6 @@ function createPinIcon(pin: MapPin) {
   });
 }
 
-function FitBounds({ pins }: { pins: MapPin[] }) {
-  const map = useMap();
-
-  useEffect(() => {
-    if (pins.length === 0) return;
-    if (pins.length === 1) {
-      map.setView([pins[0].latitude, pins[0].longitude], 12);
-      return;
-    }
-    const bounds = L.latLngBounds(
-      pins.map((pin) => [pin.latitude, pin.longitude] as [number, number])
-    );
-    map.fitBounds(bounds, { padding: [40, 40] });
-  }, [pins, map]);
-
-  return null;
-}
-
 export default function TripMap({
   tripSlug,
   pins,
@@ -51,33 +32,42 @@ export default function TripMap({
   tripSlug: string;
   pins: MapPin[];
 }) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
-  const center: [number, number] =
-    pins.length > 0 ? [pins[0].latitude, pins[0].longitude] : [20, 0];
 
-  return (
-    <MapContainer
-      center={center}
-      zoom={pins.length > 0 ? 6 : 2}
-      className="h-full w-full"
-      scrollWheelZoom
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <FitBounds pins={pins} />
-      {pins.map((pin) => (
-        <Marker
-          key={pin.albumSlug}
-          position={[pin.latitude, pin.longitude]}
-          icon={createPinIcon(pin)}
-          eventHandlers={{
-            click: () =>
-              router.push(`/trip/${tripSlug}/album/${pin.albumSlug}`),
-          }}
-        />
-      ))}
-    </MapContainer>
-  );
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const map = L.map(containerRef.current, {
+      center:
+        pins.length > 0 ? [pins[0].latitude, pins[0].longitude] : [20, 0],
+      zoom: pins.length > 0 ? 6 : 2,
+    });
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map);
+
+    for (const pin of pins) {
+      L.marker([pin.latitude, pin.longitude], { icon: createPinIcon(pin) })
+        .addTo(map)
+        .on("click", () => {
+          router.push(`/trip/${tripSlug}/album/${pin.albumSlug}`);
+        });
+    }
+
+    if (pins.length > 1) {
+      const bounds = L.latLngBounds(
+        pins.map((pin) => [pin.latitude, pin.longitude] as [number, number])
+      );
+      map.fitBounds(bounds, { padding: [40, 40] });
+    }
+
+    return () => {
+      map.remove();
+    };
+  }, [pins, tripSlug, router]);
+
+  return <div ref={containerRef} className="h-full w-full" />;
 }
