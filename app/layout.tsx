@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
 import AppShell from "@/components/AppShell";
 import { ICON_BG } from "@/lib/app-icon";
+import "leaflet/dist/leaflet.css";
 import "./globals.css";
 
 const DEFAULT_SITE_TITLE = "우리의 여행";
