@@ -40,6 +40,12 @@ function titleFromFolderName(name: string): string {
   return name.replace(/^\d+[_\-\s]*/, "").replace(/_/g, " ").trim() || name;
 }
 
+/** 제목의 첫 단어를 뽑습니다. 앨범 폴더명 규칙(번호_도시_...)상 도시명이 됩니다. */
+function firstWord(text: string): string | null {
+  const word = text.trim().split(/\s+/)[0];
+  return word || null;
+}
+
 function slugify(input: string): string {
   const slug = input
     .trim()
@@ -147,7 +153,11 @@ export async function getTripCoverThumbnail(
 
 export async function listAlbums(tripFolderId: string): Promise<Album[]> {
   const overrides = await getAlbumOverrides();
-  return listChildFolders(tripFolderId, overrides);
+  const folders = await listChildFolders(tripFolderId, overrides);
+  return folders.map((folder) => ({
+    ...folder,
+    city: firstWord(folder.title),
+  }));
 }
 
 export async function getAlbumBySlug(
@@ -179,7 +189,7 @@ export async function listPhotos(driveFolderId: string): Promise<Photo[]> {
   const res = await drive.files.list({
     q: `'${driveFolderId}' in parents and mimeType contains 'image/' and trashed = false`,
     fields:
-      "files(id, name, thumbnailLink, createdTime, imageMediaMetadata(time))",
+      "files(id, name, thumbnailLink, createdTime, imageMediaMetadata(time, location, cameraModel, aperture, isoSpeed))",
     orderBy: "name",
     pageSize: 1000,
   });
@@ -191,6 +201,7 @@ export async function listPhotos(driveFolderId: string): Promise<Photo[]> {
 
   const photos: Photo[] = files.map((file, index) => {
     const override = overrides.get(file.id);
+    const exif = file.imageMediaMetadata;
     return {
       driveFileId: file.id,
       name: file.name ?? file.id,
@@ -198,7 +209,12 @@ export async function listPhotos(driveFolderId: string): Promise<Photo[]> {
       caption: override?.caption ?? null,
       sortOrder: override?.sortOrder ?? index,
       createdTime: file.createdTime ?? null,
-      takenAt: file.imageMediaMetadata?.time ?? file.createdTime ?? null,
+      takenAt: exif?.time ?? file.createdTime ?? null,
+      latitude: exif?.location?.latitude ?? null,
+      longitude: exif?.location?.longitude ?? null,
+      cameraModel: exif?.cameraModel ?? null,
+      aperture: exif?.aperture ?? null,
+      isoSpeed: exif?.isoSpeed ?? null,
     };
   });
 
@@ -217,6 +233,7 @@ export async function listAllPhotos(
         ...photo,
         albumSlug: album.slug,
         albumTitle: album.title,
+        albumCity: album.city,
       }));
     })
   );

@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import type { Photo } from "@/lib/types";
+import type { PhotoWithAlbum } from "@/lib/types";
 import Lightbox from "./Lightbox";
 
-export default function PhotoGrid({ photos }: { photos: Photo[] }) {
+export default function PhotoGrid({ photos }: { photos: PhotoWithAlbum[] }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (

@@ -73,7 +73,13 @@
       "Bash(curl -s -b /tmp/cookies_final.txt -X POST http://127.0.0.1:3000/api/memo -H 'Content-Type: application/json' --data-binary @/tmp/memo_payload.json --max-time 15)",
       "Bash(curl -s -X PATCH https://okvszueaxgliwogiutds.supabase.co/rest/v1/albums?drive_folder_id=eq.152OT5IevDY3LfZS38fhJLbW9BkdLjdVg -H 'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9rdnN6dWVheGdsaXdvZ2l1dGRzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NzAwMDY0NiwiZXhwIjoyMTAyNTc2NjQ2fQ.YsbiHsunvqP0Hu97_C45WS_xUMljUzSc15bqH_9JP60' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9rdnN6dWVheGdsaXdvZ2l1dGRzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NzAwMDY0NiwiZXhwIjoyMTAyNTc2NjQ2fQ.YsbiHsunvqP0Hu97_C45WS_xUMljUzSc15bqH_9JP60' -H 'Content-Type: application/json' -d '{\"description\": null}' -w '\\\\nstatus=%{http_code}\\\\n' --max-time 15)",
       "Bash(node -e ' *)",
-      "Bash(curl -s -b /tmp/cookies_final.txt http://127.0.0.1:3000/trip/%EC%9C%A0%EB%9F%BD-%EC%8B%A0%ED%98%BC%EC%97%AC%ED%96%89-260316-260323/album/%EC%B2%AB%EB%82%A0 --max-time 15)"
+      "Bash(curl -s -b /tmp/cookies_final.txt http://127.0.0.1:3000/trip/%EC%9C%A0%EB%9F%BD-%EC%8B%A0%ED%98%BC%EC%97%AC%ED%96%89-260316-260323/album/%EC%B2%AB%EB%82%A0 --max-time 15)",
+      "Bash(curl -s -c /tmp/cookies_exif.txt -X POST http://127.0.0.1:3000/api/login -d \"password=0919\" -d \"next=%2F\" --max-time 15 -o /dev/null -w \"login status=%{http_code}\\\\n\")",
+      "Bash(curl -s -b /tmp/cookies_exif.txt http://127.0.0.1:3000/trip/__TRACKED_VAR__/album/%EC%B2%AB%EB%82%A0 --max-time 15)",
+      "Bash(curl -s -b /tmp/cookies_exif.txt http://127.0.0.1:3000/trip/%EC%9C%A0%EB%9F%BD-%EC%8B%A0%ED%98%BC%EC%97%AC%ED%96%89-260316-260323 --max-time 15)",
+      "Bash(grep -o '\\\\\\\\\"city\\\\\\\\\"[^,}]*')",
+      "Bash(curl -s -b /tmp/cookies_exif.txt http://127.0.0.1:3000/trip/%EC%9C%A0%EB%9F%BD-%EC%8B%A0%ED%98%BC%EC%97%AC%ED%96%89-260316-260323/map --max-time 20)",
+      "Bash(grep -o '\\\\\\\\\"latitude\\\\\\\\\":[0-9.]*\\\\|\\\\\\\\\"title\\\\\\\\\":\\\\\\\\\"[^\"]*\\\\\\\\\"\\\\|위치 정보가 있는')"
     ],
     "additionalDirectories": [
       "\\tmp"

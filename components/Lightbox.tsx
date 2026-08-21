@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import type { Photo } from "@/lib/types";
+import { formatGpsCoordinate, formatPhotoTakenAt } from "@/lib/photo-format";
+import type { PhotoWithAlbum } from "@/lib/types";
 import CommentPanel from "./CommentPanel";
 
 const SWIPE_THRESHOLD = 50;
@@ -12,7 +13,7 @@ export default function Lightbox({
   onClose,
   onIndexChange,
 }: {
-  photos: Photo[];
+  photos: PhotoWithAlbum[];
   index: number;
   onClose: () => void;
   onIndexChange: (index: number) => void;
@@ -61,6 +62,19 @@ export default function Lightbox({
     if (dx > 0) goPrev();
     else goNext();
   }
+
+  const takenAtText = formatPhotoTakenAt(photo.takenAt);
+  const cameraText = [
+    photo.cameraModel,
+    photo.aperture != null ? `f/${photo.aperture}` : null,
+    photo.isoSpeed != null ? `ISO ${photo.isoSpeed}` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  const gpsText =
+    photo.latitude != null && photo.longitude != null
+      ? formatGpsCoordinate(photo.latitude, photo.longitude)
+      : null;
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black">
@@ -118,11 +132,22 @@ export default function Lightbox({
         )}
       </div>
 
-      {photo.caption && (
-        <p className="px-4 pb-2 text-center text-sm text-white/80">
-          {photo.caption}
-        </p>
-      )}
+      <div className="flex flex-col items-center gap-0.5 px-4 pb-2 pt-1 text-center">
+        {photo.albumCity && (
+          <p className="font-display text-base font-bold text-white">
+            {photo.albumCity}
+          </p>
+        )}
+        {photo.caption && (
+          <p className="text-sm text-white/80">{photo.caption}</p>
+        )}
+        {(takenAtText || cameraText) && (
+          <p className="text-xs text-white/50">
+            {[takenAtText, cameraText || null].filter(Boolean).join(" · ")}
+          </p>
+        )}
+        {gpsText && <p className="text-[11px] text-white/35">{gpsText}</p>}
+      </div>
 
       <CommentPanel key={photo.driveFileId} driveFileId={photo.driveFileId} />
     </div>

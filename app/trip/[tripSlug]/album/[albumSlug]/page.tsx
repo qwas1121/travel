@@ -4,13 +4,13 @@ import PhotoGrid from "@/components/PhotoGrid";
 import SetupNotice from "@/components/SetupNotice";
 import TopBar from "@/components/TopBar";
 import { getAlbumBySlug, getTripBySlug, listPhotos } from "@/lib/drive";
-import type { Album, Photo, Trip } from "@/lib/types";
+import type { Album, PhotoWithAlbum, Trip } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 type AlbumData =
   | { found: false }
-  | { found: true; trip: Trip; album: Album; photos: Photo[] };
+  | { found: true; trip: Trip; album: Album; photos: PhotoWithAlbum[] };
 
 async function loadAlbumData(
   tripSlug: string,
@@ -22,7 +22,13 @@ async function loadAlbumData(
   const album = await getAlbumBySlug(trip.driveFolderId, albumSlug);
   if (!album) return { found: false };
 
-  const photos = await listPhotos(album.driveFolderId);
+  const rawPhotos = await listPhotos(album.driveFolderId);
+  const photos: PhotoWithAlbum[] = rawPhotos.map((photo) => ({
+    ...photo,
+    albumSlug: album.slug,
+    albumTitle: album.title,
+    albumCity: album.city,
+  }));
   return { found: true, trip, album, photos };
 }
 
