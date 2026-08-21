@@ -14,13 +14,13 @@ export type MapPin = {
 
 function createPinIcon(pin: MapPin) {
   const imageHtml = pin.coverThumbnail
-    ? `<img src="${pin.coverThumbnail}" style="width:100%;height:100%;object-fit:cover;" />`
-    : "";
+    ? `<img src="${pin.coverThumbnail}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;" />`
+    : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;">💕</div>`;
   return L.divIcon({
-    className: "",
-    html: `<div style="width:48px;height:48px;border-radius:50%;overflow:hidden;border:2px solid #ec6f9a;box-shadow:0 2px 8px rgba(0,0,0,0.45);background:#1f1c1a;">${imageHtml}</div>`,
-    iconSize: [48, 48],
-    iconAnchor: [24, 24],
+    className: "map-pin",
+    html: `<div style="width:52px;height:52px;border-radius:50%;overflow:hidden;border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,0.4), 0 0 0 3px rgba(236,111,154,0.55);background:#1f1c1a;">${imageHtml}</div>`,
+    iconSize: [52, 52],
+    iconAnchor: [26, 26],
   });
 }
 
@@ -52,10 +52,12 @@ export default function TripMap({
       });
 
       const tileLayer = L.tileLayer(
-        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
         {
           attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+          subdomains: "abcd",
+          maxZoom: 20,
         }
       ).addTo(map);
 
